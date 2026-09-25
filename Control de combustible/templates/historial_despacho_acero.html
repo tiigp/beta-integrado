@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+{% block content %}
+<style>
+  .dispatch-history-page { max-width: 1480px; color: #172033; }
+  .dispatch-history-hero { padding: 1.5rem 1.7rem; border: 1px solid #d7e2ec; border-radius: 18px; background: linear-gradient(135deg, #ffffff 0%, #eef6fb 100%); box-shadow: 0 12px 28px rgba(31, 65, 88, .08); }
+  .dispatch-history-kicker { margin-bottom: .35rem; color: #19708a; font-size: .72rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+  .dispatch-history-hero h1 { margin: 0; color: #173d52; font-weight: 800; }
+  .dispatch-history-hero p { color: #6b7c8d; }
+  .dispatch-filter-panel { border: 1px solid #d7e2ec; border-radius: 14px; background: #fff; box-shadow: 0 8px 20px rgba(31, 65, 88, .06); }
+  .dispatch-filter-panel .form-label { color: #52677a; font-size: .78rem; font-weight: 700; }
+  .dispatch-history-card { overflow: hidden; border: 1px solid #d7e2ec; border-radius: 14px; box-shadow: 0 9px 22px rgba(31, 65, 88, .07); }
+  .dispatch-history-card .card-header { padding: .85rem 1rem; border-bottom: 1px solid #d9e5ed; background: #f7fafc; }
+  .dispatch-history-card .card-header strong { color: #173d52; font-size: 1rem; }
+  .dispatch-history-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .4rem; }
+  .dispatch-history-card .card-body { background: #fff; }
+  .dispatch-history-card .table { margin-bottom: 0; }
+  .dispatch-history-card .table thead th { color: #607285; background: #f7fafc; font-size: .72rem; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+  .dispatch-history-card .table tbody td { color: #34495a; vertical-align: middle; }
+  .dispatch-history-card .table tfoot td { color: #173d52; background: #f5f9fb; }
+  .dispatch-summary-panel { overflow: hidden; border: 1px solid #d7e2ec; border-radius: 14px; background: #fff; box-shadow: 0 8px 20px rgba(31, 65, 88, .06); }
+  .dispatch-summary-panel .table { margin: 0; }
+  .dispatch-summary-panel .table thead th { color: #607285; background: #f7fafc; font-size: .72rem; text-transform: uppercase; }
+  @media (max-width: 700px) { .dispatch-history-page { padding-right: .75rem !important; padding-left: .75rem !important; } .dispatch-history-hero { padding: 1.2rem; } .dispatch-history-card .card-header { align-items: flex-start !important; } }
+</style>
+<div class="container-fluid py-4 dispatch-history-page">
+  <div class="dispatch-history-hero d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div><div class="dispatch-history-kicker">Despacho de Varillas</div><h1 class="mb-1">Historial de despachos</h1><p class="mb-0">Consulte entregas, remisiones y atados asociados desde un solo lugar.</p></div>
+    <div class="d-flex flex-wrap gap-2"><a class="btn btn-primary" href="{{ url_for('quality_dashboard', show='nueva') }}"><i class="bi bi-plus-circle me-1"></i>Cargar atado</a><a class="btn btn-outline-secondary" href="{{ url_for('panel_despacho_acero') }}"><i class="bi bi-arrow-left me-1"></i>Volver a Despacho</a></div>
+  </div>
+  <form class="dispatch-filter-panel card-body mb-4" method="get">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-3"><label class="form-label" for="cliente">Cliente</label><select class="form-select" id="cliente" name="cliente"><option value="">Todos</option>{% for item in clientes %}<option value="CLI-{{ item.id }}" {{ 'selected' if cliente and cliente.id == item.id }}>{{ item.nombre }}</option>{% endfor %}</select></div>
+      <div class="col-md-3"><label class="form-label" for="colada">Colada</label><input class="form-control" id="colada" name="colada" value="{{ colada }}" placeholder="Buscar colada"></div>
+      <div class="col-md-2"><label class="form-label" for="fecha_desde">Desde</label><input class="form-control" type="date" id="fecha_desde" name="fecha_desde" value="{{ fecha_desde }}"></div>
+      <div class="col-md-2"><label class="form-label" for="fecha_hasta">Hasta</label><input class="form-control" type="date" id="fecha_hasta" name="fecha_hasta" value="{{ fecha_hasta }}"></div>
+      <div class="col-md-2 d-flex gap-2"><button class="btn btn-primary flex-grow-1" type="submit">Filtrar</button><a class="btn btn-outline-secondary" href="{{ url_for('historial_despacho_acero') }}" title="Limpiar filtros"><i class="bi bi-x-lg"></i></a></div>
+    </div>
+  </form>
+  {% for despacho in despachos %}
+  {% set total = namespace(peso=0) %}
+  <article class="dispatch-history-card card mb-4">
+    <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2"><div><strong>{{ despacho.numero }}</strong><span class="text-muted ms-2">{{ despacho.fecha.strftime('%d/%m/%Y %H:%M') }}</span></div><div class="dispatch-history-actions"><button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#detalle-despacho-{{ loop.index }}" aria-expanded="{{ 'true' if despacho.numero == 'D-20260924-0008' else 'false' }}" aria-controls="detalle-despacho-{{ loop.index }}"><i class="bi bi-chevron-down me-1"></i>Detalle</button><a class="btn btn-sm btn-outline-primary" href="{{ url_for('documento_despacho_acero', despacho_id=despacho.id, tipo='despacho') }}"><i class="bi bi-file-text me-1"></i>Despacho</a><a class="btn btn-sm btn-outline-success" href="{{ url_for('documento_despacho_acero', despacho_id=despacho.id, tipo='remision') }}"><i class="bi bi-truck me-1"></i>Remisión</a></div></div>
+    <div id="detalle-despacho-{{ loop.index }}" class="collapse{{ ' show' if despacho.numero == 'D-20260924-0008' else '' }}"><div class="card-body"><div class="row g-2 mb-3"><div class="col-md-4"><strong>Cliente:</strong> {{ despacho.cliente }}</div><div class="col-md-4"><strong>Destino:</strong> {{ despacho.destino }}</div><div class="col-md-4"><strong>Chofer:</strong> {{ despacho.chofer }}</div></div><div class="table-responsive"><table class="table table-sm table-bordered align-middle mb-0"><thead><tr><th>Etiqueta</th><th>Producto</th><th>Calidad</th><th>Medida</th><th>Longitud</th><th>Colada</th><th class="text-end">Peso (kg)</th><th>Acción</th></tr></thead><tbody>{% for detalle in despacho.etiquetas %}{% set etiqueta = detalle.etiqueta %}{% set total.peso = total.peso + steel_weight(etiqueta.peso) %}<tr><td class="text-nowrap">{{ 'NO-INF-' if (etiqueta.observaciones or '').startswith('NO INFORMATIZADO') else 'ETQ-' }}{{ '%07d'|format(etiqueta.id) }}</td><td>{{ 'AP500 S' if etiqueta.tipo_producto == 'AP500S' else 'Palanquillas' if etiqueta.tipo_producto == 'Palanquillas' else 'Varillas Lisas' }}</td><td>{{ etiqueta.calidad or '-' }}</td><td>{{ etiqueta.medida or '-' }} mm</td><td>{{ etiqueta.longitud or '-' }} m</td><td>{{ etiqueta.colada or '-' }}</td><td class="text-end">{{ etiqueta.peso or '-' }}</td><td class="text-nowrap"><a class="btn btn-sm btn-outline-secondary" href="{{ url_for('editar_etiqueta_qality', etiqueta_id=etiqueta.id) }}" title="Editar atado"><i class="bi bi-pencil"></i></a><form class="d-inline" method="post" action="{{ url_for('eliminar_etiqueta_qality', etiqueta_id=etiqueta.id) }}" onsubmit="return confirm('¿Eliminar este atado?');"><button class="btn btn-sm btn-outline-danger" type="submit" title="Eliminar atado"><i class="bi bi-trash"></i></button></form><form class="d-inline" method="post" action="{{ url_for('devolver_etiqueta_despacho', despacho_id=despacho.id, detalle_id=detalle.id) }}" onsubmit="return confirm('¿Devolver esta etiqueta a existencias?');"><button class="btn btn-sm btn-outline-warning text-nowrap" type="submit" title="Devolver etiqueta a existencias"><i class="bi bi-box-arrow-left"></i></button></form></td></tr>{% endfor %}</tbody><tfoot><tr class="fw-semibold"><td colspan="7">{{ despacho.etiquetas|length }} atado(s) · Peso total</td><td class="text-end">{{ '%.2f'|format(total.peso) }} kg</td></tr></tfoot></table></div></div></div>
+  </article>
+  {% else %}<div class="alert alert-info">No hay despachos que coincidan con los filtros.</div>{% endfor %}
+    {% if despachos %}<div class="dispatch-summary-panel"><div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead><tr><th>Despacho</th><th>Fecha</th><th>Cliente</th><th>Destino</th><th>Atados</th><th class="text-end">Peso total</th><th class="text-end">Documentos</th></tr></thead><tbody>{% for despacho in despachos %}{% set total = namespace(peso=0) %}{% for detalle in despacho.etiquetas %}{% set total.peso = total.peso + steel_weight(detalle.etiqueta.peso) %}{% endfor %}<tr><td class="fw-semibold text-nowrap">{{ despacho.numero }}</td><td class="text-nowrap">{{ despacho.fecha.strftime('%d/%m/%Y %H:%M') }}</td><td>{{ despacho.cliente }}</td><td>{{ despacho.destino }}</td><td>{{ despacho.etiquetas|length }}</td><td class="text-end text-nowrap">{{ '%.2f'|format(total.peso) }} kg</td><td class="text-end"><div class="d-flex justify-content-end flex-wrap gap-1"><a class="btn btn-sm btn-outline-primary" href="{{ url_for('documento_despacho_acero', despacho_id=despacho.id, tipo='despacho') }}" title="Abrir documento de despacho"><i class="bi bi-file-text me-1"></i>Despacho</a><a class="btn btn-sm btn-outline-success" href="{{ url_for('documento_despacho_acero', despacho_id=despacho.id, tipo='remision') }}" title="Abrir remisión"><i class="bi bi-truck me-1"></i>Remisión</a></div></td></tr>{% endfor %}</tbody></table></div></div>{% else %}<div class="alert alert-info">No hay despachos que coincidan con los filtros.</div>{% endif %}
+</div>
+{% endblock %}

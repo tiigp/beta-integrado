@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+      <div class="small text-uppercase text-primary fw-semibold">Recursos Humanos</div>
+      <h1 class="mb-1">Historial de bajas</h1>
+    </div>
+    <a class="btn btn-outline-secondary" href="{{ url_for('rrhh_padron_colaboradores') }}"><i class="bi bi-arrow-left me-1"></i>Volver al padrón</a>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body">
+      {% if historial %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Colaborador</th>
+              <th>Legajo</th>
+              <th>Motivo</th>
+              <th>Fecha de baja</th>
+              <th>Observación</th>
+              <th>Registrado por</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in historial %}
+            <tr>
+              <td>{{ item.colaborador.nombre }}</td>
+              <td>{{ item.colaborador.legajo or '-' }}</td>
+              <td>{{ item.motivo }}</td>
+              <td>{{ item.fecha_baja.strftime('%d/%m/%Y') if item.fecha_baja else '-' }}</td>
+              <td>{{ item.observacion or '-' }}</td>
+              <td>{{ item.creado_por.full_name or item.creado_por.username }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center text-muted py-4">No hay bajas registradas.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

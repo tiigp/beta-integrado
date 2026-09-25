@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <div class="small text-uppercase text-primary fw-semibold">Certificado {{ certificado.numero_certificado }}</div>
+      <h1 class="mb-1">Vista previa del certificado</h1>
+      <p class="text-muted mb-0">Colada {{ certificado.numero_colada }} · {{ certificado.tipo_producto or 'Producto de calidad' }}</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a class="btn btn-primary" href="{{ url_for('descargar_certificacion', certificado_id=certificado.id) }}" target="_blank"><i class="bi bi-file-earmark-pdf me-2"></i>Abrir PDF</a>
+      <a class="btn btn-outline-primary" href="{{ url_for('centro_documental_certificacion') }}"><i class="bi bi-collection me-2"></i>Galería de certificados</a>
+      <a class="btn btn-outline-secondary" href="{{ url_for('quality_dashboard') }}"><i class="bi bi-grid me-2"></i>Volver al panel de Calidad</a>
+    </div>
+  </div>
+  <div class="row g-4">
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <h2 class="h5">Datos del certificado</h2>
+          <dl class="row mb-0">
+            <dt class="col-6">Certificado</dt><dd class="col-6">{{ certificado.numero_certificado }}</dd>
+            <dt class="col-6">Colada</dt><dd class="col-6">{{ certificado.numero_colada }}</dd>
+            <dt class="col-6">Producto</dt><dd class="col-6">{{ certificado.tipo_producto or '-' }}</dd>
+            <dt class="col-6">Fecha</dt><dd class="col-6">{{ certificado.fecha_certificacion.strftime('%d/%m/%Y') if certificado.fecha_certificacion else '-' }}</dd>
+            <dt class="col-6">Carbono</dt><dd class="col-6">{{ certificado.carbono or '0' }} %</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-8">
+      <div class="ratio ratio-4x3 border rounded bg-light overflow-hidden shadow-sm">
+        <iframe src="{{ url_for('descargar_certificacion', certificado_id=certificado.id) }}" title="PDF del certificado"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

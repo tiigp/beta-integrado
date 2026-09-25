@@ -1,0 +1,27 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="dashboard-card mt-1">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <div><h2 class="mb-1">Historial de despachos</h2><p class="text-muted mb-0">Consulte las cargas registradas y abra su detalle o comprobante.</p></div>
+    <a class="btn btn-primary" href="{{ url_for('despachos') }}"><i class="bi bi-plus-lg me-1"></i>Nuevo despacho</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead><tr><th>Fecha</th><th>Equipo</th><th>Responsable</th><th>Litros</th><th>Acciones</th></tr></thead>
+      <tbody>
+        {% for despacho in despachos %}
+        <tr>
+          <td>{{ despacho.fecha.strftime('%d/%m/%Y') if despacho.fecha else 'Sin fecha' }}</td>
+          <td>{{ despacho.equipo.nombre }}</td>
+          <td>{{ despacho.responsable }}</td>
+          <td>{{ '%.0f'|format(despacho.litros) }} L</td>
+          <td><div class="d-flex gap-2"><a href="{{ url_for('detalle_despacho', despacho_id=despacho.id) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye me-1"></i>Ver</a><a href="{{ url_for('pdf_despacho', despacho_id=despacho.id) }}" class="btn btn-sm btn-outline-success" target="_blank"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</a></div></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="text-center text-muted py-4">No hay despachos registrados.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

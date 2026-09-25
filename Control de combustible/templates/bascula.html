@@ -1,0 +1,442 @@
+{% extends "layout.html" %}
+{% block content %}
+<style>
+  .bascula-page { max-width: 1380px; margin: 0 auto; color: #172033; }
+  .bascula-hero { padding: 1.5rem 1.7rem; border: 1px solid #d8e3eb; border-radius: 16px; background: linear-gradient(120deg, #fff, #eef7f5); }
+  .bascula-hero h1 { margin: 0; color: #173d52; }
+  .bascula-hero p { margin: .4rem 0 0; color: #68788b; }
+  .bascula-card { height: 100%; border: 1px solid #dbe5ec; border-radius: 12px; background: #fff; box-shadow: 0 7px 18px rgba(31,65,88,.06); }
+  .bascula-stat { padding: 1rem; border-left: 4px solid #168269; background: #fff; }
+  .bascula-stat strong { display: block; color: #173d52; font-size: 1.3rem; }
+  .bascula-table th { color: #607285; font-size: .78rem; text-transform: uppercase; }
+  .scale-lcd { display: flex; align-items: stretch; justify-content: space-between; gap: 1.2rem; margin-bottom: 1.75rem; padding: 1.1rem 1.25rem; border: 1px solid #b9d0d2; border-radius: 14px; background: linear-gradient(135deg, #102f35, #193f43); color: #eafff7; box-shadow: 0 10px 24px rgba(20, 62, 68, .16); }
+  .scale-lcd-screen { min-width: 0; flex: 1 1 auto; padding: .8rem 1rem; border: 1px solid rgba(155, 241, 215, .28); border-radius: 8px; background: #071d20; }
+  .scale-lcd-label { color: #8fc9bb; font-size: .72rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+  .scale-lcd-value { overflow: hidden; color: #a7f5d6; font-family: "Courier New", monospace; font-size: clamp(2rem, 5vw, 3.7rem); font-weight: 700; line-height: 1.05; text-shadow: 0 0 12px rgba(111, 245, 198, .28); white-space: nowrap; }
+  .scale-lcd-status { color: #86a9a3; font-size: .78rem; }
+  .scale-lcd-controls { display: flex; min-width: 210px; flex-direction: column; justify-content: center; gap: .55rem; }
+  .scale-lcd-controls .form-select { color: #eafff7; border-color: rgba(155, 241, 215, .3); background-color: rgba(0, 0, 0, .2); }
+  .scale-lcd-controls .form-select option { color: #172033; }
+  .weight-capture-panel { border-color: rgba(102, 206, 127, .2); }
+  .weight-capture-table { max-height: 300px; overflow: auto; }
+  .weight-capture-table thead th { position: sticky; top: 0; z-index: 1; background: #0d2116; }
+  .weight-capture-empty { color: #80a987; }
+  @media (max-width: 700px) { .scale-lcd { flex-direction: column; } .scale-lcd-controls { min-width: 0; } }
+  .bascula-sectors { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; margin-bottom: 1.75rem; }
+  .bascula-sector-link { position: relative; display: flex; min-height: 132px; flex-direction: column; justify-content: space-between; overflow: hidden; padding: 1.1rem; border: 1px solid #d9e4ea; border-radius: 14px; color: #173d52; background: linear-gradient(145deg, #fff 0%, #f7fbfc 100%); box-shadow: 0 8px 22px rgba(31,65,88,.07); text-decoration: none; transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease, background .2s ease; }
+  .bascula-sector-link::after { content: ""; position: absolute; right: -28px; bottom: -34px; width: 105px; height: 105px; border: 1px solid rgba(22,130,105,.1); border-radius: 50%; box-shadow: 0 0 0 12px rgba(22,130,105,.035), 0 0 0 24px rgba(22,130,105,.025); }
+  .bascula-sector-link:hover { transform: translateY(-4px); border-color: #63b79f; color: #11614f; background: linear-gradient(145deg, #fff 0%, #eefaf5 100%); box-shadow: 0 14px 28px rgba(31,65,88,.13); }
+  .bascula-sector-link:focus-visible { outline: 3px solid rgba(22,130,105,.25); outline-offset: 3px; }
+  .bascula-sector-link i { position: relative; z-index: 1; display: grid; width: 42px; height: 42px; place-items: center; border: 1px solid #cfe9df; border-radius: 11px; color: #168269; background: #eaf7f1; font-size: 1.25rem; }
+  .bascula-sector-link span { position: relative; z-index: 1; max-width: 85%; font-size: .92rem; font-weight: 750; line-height: 1.25; }
+  .bascula-section { scroll-margin-top: 1rem; }
+  .bascula-content { display: none; }
+  .bascula-content.is-active { display: block; }
+  .bascula-content.is-active .bascula-selected-shell { flex: 0 0 100%; width: 100%; max-width: 100%; }
+  .bascula-content.is-active .bascula-selected-shell > section { min-height: 420px; }
+  @media (max-width: 1000px) { .bascula-sectors { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 576px) { .bascula-sectors { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  body:has(.bascula-page), .dashboard-shell:has(.bascula-page) { max-width: none; }
+  .dashboard-shell:has(.bascula-page) { padding-right: 0; padding-left: 0; }
+  .dashboard-content:has(.bascula-page) { padding-top: 0; background: #07110d; }
+  .bascula-page { max-width: none; min-height: calc(100vh - 32px); margin: 0 0 -32px; padding: 1.8rem max(2rem, calc((100vw - 1500px) / 2)) 4rem; color: #d5eadb; background: radial-gradient(circle at 80% 0%, rgba(52, 161, 89, .12), transparent 28%), linear-gradient(135deg, #07110d, #0b1912 58%, #07100b); }
+  .bascula-hero { border-color: rgba(102, 206, 127, .28); border-radius: 5px 18px 5px 18px; background: #0d2116; box-shadow: 0 12px 28px rgba(0, 0, 0, .24); }
+  .bascula-hero h1 { color: #c8f3d0; font-family: "Courier New", monospace; letter-spacing: .04em; }
+  .bascula-hero-actions { display: flex; align-items: center; justify-content: flex-end; gap: .45rem; flex-wrap: wrap; }
+  .bascula-hero .logout-link, .bascula-hero .header-menu { color: #b5d7bb; border-color: rgba(181, 215, 187, .35); background: rgba(0, 0, 0, .12); }
+  .bascula-hero .logout-link:hover, .bascula-hero .header-menu:hover { color: #e2ffe7; background: rgba(102, 206, 127, .15); }
+  .bascula-hero p { color: #8eae96; }
+  .bascula-card { border-color: rgba(102, 206, 127, .2); border-radius: 5px 14px 5px 14px; background: #0d1d13; box-shadow: 0 10px 24px rgba(0, 0, 0, .2); }
+  .bascula-card h2, .bascula-card h3 { color: #c8f3d0; }
+  .bascula-sectors { gap: .8rem; }
+  .bascula-sector-link { min-height: 118px; border-color: rgba(102, 206, 127, .2); border-radius: 5px 12px 5px 12px; color: #c8f3d0; background: #0d2116; box-shadow: 0 8px 20px rgba(0, 0, 0, .18); }
+  .bascula-sector-link::after { border-color: rgba(102, 206, 127, .12); box-shadow: 0 0 0 12px rgba(102, 206, 127, .03), 0 0 0 24px rgba(102, 206, 127, .02); }
+  .bascula-sector-link:hover { border-color: rgba(129, 239, 153, .65); color: #e2ffe7; background: #12331c; box-shadow: 0 12px 25px rgba(0, 0, 0, .28), 0 0 16px rgba(73, 190, 103, .1); }
+  .bascula-sector-link i { border-color: rgba(102, 206, 127, .25); color: #8be69b; background: #102b18; }
+  .bascula-table th { color: #84b88f; }
+  .bascula-page .table { --bs-table-bg: transparent; --bs-table-color: #bdd2c0; --bs-table-hover-bg: rgba(102, 206, 127, .07); --bs-table-hover-color: #e2ffe7; }
+  .bascula-page .table td, .bascula-page .table th { border-color: rgba(102, 206, 127, .12); }
+  .bascula-page .form-label, .bascula-page .form-text { color: #91b39a; }
+  .bascula-page .form-control, .bascula-page .form-select { color: #d9f0dc; border-color: rgba(102, 206, 127, .25); background-color: #09170e; }
+  .bascula-page .form-control::placeholder { color: #64806b; }
+  .bascula-page .form-select option { color: #172033; }
+  .bascula-page .btn-outline-secondary { color: #b5d7bb; border-color: rgba(181, 215, 187, .35); }
+  .bascula-page .btn-outline-secondary:hover { color: #07110d; background: #b5d7bb; }
+  .scale-lcd { border-color: rgba(137, 239, 151, .42); background: linear-gradient(135deg, #102c18, #173d20); box-shadow: 0 12px 28px rgba(0, 0, 0, .28), 0 0 20px rgba(68, 191, 91, .08); }
+  .scale-lcd-screen { border-color: rgba(151, 245, 165, .3); background: #061209; }
+  .scale-lcd-label { color: #88c992; }
+  .scale-lcd-value { color: #a8f5af; text-shadow: 0 0 12px rgba(123, 244, 137, .3); }
+  .scale-lcd-status { color: #80a987; }
+  .bascula-sectors { max-width: 1120px; margin-right: auto; margin-left: auto; padding: .7rem; border: 1px solid rgba(102, 206, 127, .16); border-radius: 10px; background: rgba(7, 20, 11, .62); }
+  .bascula-sector-link { min-height: 94px; padding: .9rem; }
+  .bascula-sector-link i { width: 36px; height: 36px; font-size: 1rem; }
+  .bascula-sector-link span { font-size: .84rem; }
+  .bascula-content { max-width: 1440px; margin: 0 auto; }
+  .bascula-content.is-active { max-width: 1120px; }
+  .bascula-content.is-active .bascula-selected-shell > section { min-height: 0; }
+  .bascula-content.is-active .bascula-section { width: 100%; }
+  .bascula-content.is-active .bascula-section h2 { display: flex; align-items: center; gap: .6rem; padding-bottom: .8rem; border-bottom: 1px solid rgba(102, 206, 127, .16); }
+  .bascula-content.is-active .bascula-section h2::before { content: "//"; color: #72cf82; font-family: "Courier New", monospace; }
+  .bascula-content form { row-gap: 1rem !important; }
+  .bascula-content .form-label { margin-bottom: .35rem; font-size: .78rem; font-weight: 700; letter-spacing: .02em; }
+  .bascula-content .form-control, .bascula-content .form-select { min-height: 42px; border-radius: 6px; }
+  .bascula-content .input-group .btn { min-width: 94px; }
+  .bascula-content .btn-primary, .bascula-content .btn-success { border-color: #329653; background: #20733b; }
+  .bascula-content .btn-primary:hover, .bascula-content .btn-success:hover { border-color: #5ecb7b; background: #2a8d4b; }
+  .bascula-content .table-responsive { border: 1px solid rgba(102, 206, 127, .13); border-radius: 7px; }
+  .bascula-content .table { margin-bottom: 0; }
+  .bascula-content .table thead th { background: rgba(102, 206, 127, .06); }
+  .bascula-content > .row, .bascula-content > section { margin-bottom: 1.25rem !important; }
+  @media (max-width: 720px) { .bascula-page { padding-right: 1rem; padding-left: 1rem; } .bascula-hero { align-items: flex-start !important; flex-direction: column; } .bascula-hero-actions { justify-content: flex-start; } .bascula-sectors { grid-template-columns: repeat(2, minmax(0, 1fr)); } .scale-lcd { margin-bottom: 1.2rem; } }
+</style>
+<div class="container-fluid py-4 bascula-page">
+  <header class="bascula-hero mb-4 d-flex justify-content-between align-items-center gap-3"><div><div class="small text-uppercase fw-semibold text-success">Operaciones y materiales</div><h1>Báscula</h1><p>Registre compras, ventas y traslados de materiales con trazabilidad de empresas, vehículos y choferes.</p></div><div class="bascula-hero-actions"><a class="btn btn-outline-secondary" href="{{ url_for('admin_dashboard') }}"><i class="bi bi-arrow-left me-1"></i>Volver al panel</a><div class="dropdown"><button class="logout-link" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Cuenta"><i class="bi bi-person-circle"></i><span class="d-none d-md-inline">Cuenta</span></button><ul class="dropdown-menu dropdown-menu-end"><li><span class="dropdown-item-text"><strong>{{ current_user.full_name }}</strong><br><small>@{{ current_user.username }}</small></span></li></ul></div><a class="logout-link" href="{{ url_for('logout') }}" title="Cerrar sesión"><i class="bi bi-box-arrow-right"></i><span class="d-none d-md-inline">Cerrar sesión</span></a><button class="header-menu" type="button" aria-label="Acciones"><span></span></button></div></header>
+  <section class="scale-lcd" aria-label="Peso recibido en tiempo real">
+    <div class="scale-lcd-screen"><div class="scale-lcd-label">Peso en tiempo real · USB serial</div><div class="scale-lcd-value" id="peso-lcd">---.---</div><div class="scale-lcd-status" id="peso-lcd-status">Puerto no conectado · Seleccione COM1 y conecte la báscula</div></div>
+    <div class="scale-lcd-controls"><label class="small text-light" for="baud-rate">Velocidad</label><select class="form-select form-select-sm" id="baud-rate"><option value="9600">9600 baudios</option><option value="4800">4800 baudios</option><option value="19200">19200 baudios</option></select><button class="btn btn-success" type="button" id="conectar-bascula"><i class="bi bi-usb-drive me-1"></i>Conectar báscula</button><button class="btn btn-outline-light btn-sm" type="button" id="desconectar-bascula" disabled>Desconectar</button></div>
+  </section>
+  <section class="bascula-card weight-capture-panel p-3 mb-4" aria-label="Capturadora de prueba de peso">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+      <div><h2 class="h6 mb-1"><i class="bi bi-clipboard2-pulse me-1"></i>Capturadora de prueba</h2><p class="small mb-0 text-muted">Registra la trama real de la báscula y el valor convertido.</p></div>
+      <div class="d-flex flex-wrap gap-2"><button class="btn btn-sm btn-success" type="button" id="iniciar-captura"><i class="bi bi-record-circle me-1"></i>Iniciar captura</button><button class="btn btn-sm btn-outline-light" type="button" id="detener-captura" disabled><i class="bi bi-stop-circle me-1"></i>Detener</button><button class="btn btn-sm btn-outline-light" type="button" id="limpiar-captura"><i class="bi bi-trash3 me-1"></i>Limpiar</button><button class="btn btn-sm btn-outline-success" type="button" id="descargar-captura" disabled><i class="bi bi-download me-1"></i>Descargar CSV</button></div>
+    </div>
+    <div class="small mb-2" id="estado-captura">Captura detenida · 0 lecturas</div>
+    <div class="table-responsive weight-capture-table"><table class="table table-sm align-middle mb-0"><thead><tr><th>Hora</th><th>Trama recibida</th><th>Valor convertido</th></tr></thead><tbody id="tabla-captura"><tr><td colspan="3" class="weight-capture-empty text-center">Inicie la captura y coloque el peso patrón.</td></tr></tbody></table></div>
+  </section>
+  <nav class="bascula-sectors" aria-label="Sectores de báscula">
+    <a class="bascula-sector-link" href="?sector=entrada-camion"><i class="bi bi-box-arrow-in-down"></i><span>Entrada de camión</span></a>
+    <a class="bascula-sector-link" href="?sector=salida-camion"><i class="bi bi-box-arrow-up"></i><span>Cerrar salida</span></a>
+    <a class="bascula-sector-link" href="?sector=entradas-abiertas"><i class="bi bi-truck"></i><span>Entradas abiertas</span></a>
+    <a class="bascula-sector-link" href="?sector=nuevo-movimiento"><i class="bi bi-plus-square"></i><span>Nuevo movimiento</span></a>
+    <a class="bascula-sector-link" href="?sector=registros"><i class="bi bi-clock-history"></i><span>Pesajes recientes</span></a>
+    <a class="bascula-sector-link" href="?sector=registros-catalogos"><i class="bi bi-journal-text"></i><span>Registros</span></a>
+    <a class="bascula-sector-link" href="?sector=productos"><i class="bi bi-box-seam"></i><span>Productos</span></a>
+    <a class="bascula-sector-link" href="?sector=reporte-movimientos"><i class="bi bi-table"></i><span>Reporte</span></a>
+  </nav>
+  <div class="bascula-content">
+  <div class="row g-4 mb-4">
+    <div class="col-xl-6"><section class="bascula-card p-4"><h2 class="h5 mb-3">Entrada de camión</h2><form method="post" class="row g-3"><input type="hidden" name="accion" value="pesaje_entrada"><div class="col-md-4"><label class="form-label">Operación</label><select class="form-select" name="tipo_operacion"><option value="compra">Compra</option><option value="venta">Venta</option><option value="traslado">Traslado</option></select></div><div class="col-md-8"><label class="form-label">Producto</label><input class="form-control" name="producto" required></div><div class="col-md-6"><label class="form-label">Peso de entrada</label><div class="input-group"><input class="form-control" id="peso-entrada" name="peso_entrada" type="number" step="0.001" required><button class="btn btn-outline-success" type="button" id="leer-bascula">Leer USB</button></div><div class="form-text">Compatible con básculas USB que exponen puerto serie mediante Web Serial.</div></div><div class="col-md-6"><label class="form-label">Unidad</label><select class="form-select" name="unidad"><option>kg</option><option>ton</option></select></div><div class="col-md-6"><label class="form-label">Empresa</label><select class="form-select" name="empresa_id"><option value="">Sin empresa</option>{% for item in empresas %}<option value="{{ item.id }}">{{ item.nombre }}</option>{% endfor %}</select></div><div class="col-md-6"><label class="form-label">Vehículo</label><select class="form-select" name="vehiculo_id" required><option value="">Seleccione chapa</option>{% for item in vehiculos %}<option value="{{ item.id }}">{{ item.chapa }} · {{ item.tipo }}</option>{% endfor %}</select></div><div class="col-md-6"><label class="form-label">Chofer</label><select class="form-select" name="chofer_id"><option value="">Sin chofer</option>{% for item in choferes %}<option value="{{ item.id }}">{{ item.nombre }}</option>{% endfor %}</select></div><div class="col-md-6"><label class="form-label">Remisión / despacho</label><input class="form-control" name="remision"></div><div class="col-12"><button class="btn btn-success" type="submit"><i class="bi bi-box-arrow-in-down me-1"></i>Registrar entrada</button></div></form></section></div>
+      <div id="entrada-camion" class="col-xl-6 bascula-section"><section class="bascula-card p-4"><h2 class="h5 mb-3">Entrada de camión</h2><form method="post" class="row g-3"><input type="hidden" name="accion" value="pesaje_entrada"><div class="col-md-4"><label class="form-label">Operación</label><select class="form-select" name="tipo_operacion"><option value="compra">Compra</option><option value="venta">Venta</option><option value="traslado">Traslado</option></select></div><div class="col-md-8"><label class="form-label">Producto</label><input class="form-control" name="producto" required></div><div class="col-md-6"><label class="form-label">Peso de entrada</label><div class="input-group"><input class="form-control" id="peso-entrada" name="peso_entrada" type="number" step="0.001" required><button class="btn btn-outline-success" type="button" id="leer-bascula">Leer USB</button></div><div class="form-text">Compatible con básculas USB que exponen puerto serie mediante Web Serial.</div></div><div class="col-md-6"><label class="form-label">Unidad</label><select class="form-select" name="unidad"><option>kg</option><option>ton</option></select></div><div class="col-md-6"><label class="form-label">Empresa</label><select class="form-select" name="empresa_id"><option value="">Sin empresa</option>{% for item in empresas %}<option value="{{ item.id }}">{{ item.nombre }}</option>{% endfor %}</select></div><div class="col-md-6"><label class="form-label">Vehículo</label><select class="form-select" name="vehiculo_id" required><option value="">Seleccione chapa</option>{% for item in vehiculos %}<option value="{{ item.id }}">{{ item.chapa }} · {{ item.tipo }}</option>{% endfor %}</select></div><div class="col-md-6"><label class="form-label">Chofer</label><select class="form-select" name="chofer_id"><option value="">Sin chofer</option>{% for item in choferes %}<option value="{{ item.id }}">{{ item.nombre }}</option>{% endfor %}</select></div><div class="col-md-6"><label class="form-label">Remisión / despacho</label><input class="form-control" name="remision"></div><div class="col-12"><button class="btn btn-success" type="submit"><i class="bi bi-box-arrow-in-down me-1"></i>Registrar entrada</button></div></form></section></div>
+  </div>
+  <section class="bascula-card p-4 mb-4"><div class="d-flex justify-content-between align-items-center mb-3"><h2 class="h5 mb-0">Pesajes recientes</h2><span class="small text-muted">Original, editado y reimpresión quedan registrados</span></div><div class="table-responsive"><table class="table table-hover align-middle"><thead><tr><th>Ticket</th><th>Chapa / chofer</th><th>Producto</th><th>Pesos</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>{% for item in pesajes_cerrados %}<tr><td>{{ item.numero }}<div class="small text-muted">{{ item.salida_at.strftime('%d/%m/%Y %H:%M') }}</div></td><td>{{ item.vehiculo.chapa if item.vehiculo else '-' }}{% if item.chofer %}<div class="small text-muted">{{ item.chofer.nombre }}</div>{% endif %}</td><td>{{ item.producto }}</td><td>Entrada {{ '%.3f'|format(item.peso_entrada) }} · Salida {{ '%.3f'|format(item.peso_salida) }} · Neto <strong>{{ '%.3f'|format(item.peso_neto) }}</strong> {{ item.unidad }}</td><td>{{ 'Editado' if item.editado else 'Cerrado' }}{% if item.reimpresiones %}<div class="small text-muted">Reimpresiones: {{ item.reimpresiones }}</div>{% endif %}</td><td><a class="btn btn-sm btn-outline-primary" target="_blank" href="{{ url_for('ticket_pesaje_bascula', pesaje_id=item.id) }}"><i class="bi bi-printer"></i></a></td></tr>{% else %}<tr><td colspan="6" class="text-center text-muted">Aún no hay pesajes cerrados.</td></tr>{% endfor %}</tbody></table></div></section>
+  <div class="row g-4 mb-4">
+    <div class="col-xl-8"><section class="bascula-card p-4"><h2 class="h5 mb-3">Nuevo movimiento</h2><form method="post" class="row g-3"><input type="hidden" name="accion" value="movimiento"><div class="col-md-3"><label class="form-label">Operación</label><select class="form-select" name="tipo_operacion" required><option value="compra">Compra</option><option value="venta">Venta</option><option value="traslado">Traslado</option></select></div><div class="col-md-5"><label class="form-label">Producto</label><input class="form-control" name="producto" placeholder="Chatarra, varillas, palanquillas..." required></div><div class="col-md-2"><label class="form-label">Cantidad</label><input class="form-control" name="cantidad" type="number" min="0.001" step="0.001" required></div><div class="col-md-2"><label class="form-label">Unidad</label><select class="form-select" name="unidad"><option>kg</option><option>ton</option><option>unidad</option></select></div><div class="col-md-4"><label class="form-label">Empresa</label><select class="form-select" name="empresa_id"><option value="">Sin empresa</option>{% for item in empresas %}<option value="{{ item.id }}">{{ item.nombre }} · {{ item.tipo }}</option>{% endfor %}</select></div><div class="col-md-4"><label class="form-label">Vehículo</label><select class="form-select" name="vehiculo_id"><option value="">Sin vehículo</option>{% for item in vehiculos %}<option value="{{ item.id }}">{{ item.chapa }} · {{ item.tipo }} {{ item.marca }}</option>{% endfor %}</select></div><div class="col-md-4"><label class="form-label">Chofer</label><select class="form-select" name="chofer_id"><option value="">Sin chofer</option>{% for item in choferes %}<option value="{{ item.id }}">{{ item.nombre }}</option>{% endfor %}</select></div><div class="col-md-4"><label class="form-label">Remisión</label><input class="form-control" name="remision"></div><div class="col-md-4"><label class="form-label">Documento de despacho</label><input class="form-control" name="documento_despacho"></div><div class="col-md-2"><label class="form-label">Origen</label><input class="form-control" name="origen"></div><div class="col-md-2"><label class="form-label">Destino</label><input class="form-control" name="destino"></div><div class="col-12"><label class="form-label">Observación</label><input class="form-control" name="observacion"></div><div class="col-12"><button class="btn btn-success" type="submit"><i class="bi bi-plus-circle me-1"></i>Registrar movimiento</button></div></form></section></div>
+    <div class="col-xl-4"><section class="bascula-card p-4"><h2 class="h5 mb-3">Catálogos</h2><p class="small text-muted">Agregue empresas proveedoras, clientes, vehículos y choferes para usarlos en los movimientos.</p><div class="d-grid gap-2"><button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#empresaModal"><i class="bi bi-building-add me-1"></i>Nueva empresa</button><button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#vehiculoModal"><i class="bi bi-truck me-1"></i>Nuevo vehículo</button><button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#choferModal"><i class="bi bi-person-plus me-1"></i>Nuevo chofer</button></div></section></div>
+  </div>
+  <section class="bascula-card p-4"><div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3"><h2 class="h5 mb-0">Reporte de movimientos</h2><form class="d-flex flex-wrap gap-2"><input class="form-control form-control-sm" type="date" name="desde" value="{{ fecha_desde }}"><input class="form-control form-control-sm" type="date" name="hasta" value="{{ fecha_hasta }}"><select class="form-select form-select-sm" name="tipo"><option value="">Todas las operaciones</option><option value="compra" {{ 'selected' if tipo_filtro == 'compra' else '' }}>Compra</option><option value="venta" {{ 'selected' if tipo_filtro == 'venta' else '' }}>Venta</option><option value="traslado" {{ 'selected' if tipo_filtro == 'traslado' else '' }}>Traslado</option></select><input class="form-control form-control-sm" name="producto" placeholder="Producto" value="{{ producto_filtro }}"><button class="btn btn-sm btn-primary" type="submit">Filtrar</button></form></div><div class="table-responsive"><table class="table table-hover align-middle bascula-table"><thead><tr><th>Fecha</th><th>Operación</th><th>Producto</th><th>Cantidad</th><th>Empresa</th><th>Vehículo / chofer</th><th>Documentos</th></tr></thead><tbody>{% for item in movimientos %}<tr><td>{{ item.fecha.strftime('%d/%m/%Y %H:%M') }}</td><td><span class="badge text-bg-{{ 'success' if item.tipo_operacion == 'compra' else 'primary' if item.tipo_operacion == 'venta' else 'warning' }}">{{ item.tipo_operacion|capitalize }}</span></td><td>{{ item.producto }}</td><td>{{ '%.2f'|format(item.cantidad) }} {{ item.unidad }}</td><td>{{ item.empresa.nombre if item.empresa else '-' }}</td><td>{{ item.vehiculo.chapa if item.vehiculo else '-' }}{% if item.chofer %}<div class="small text-muted">{{ item.chofer.nombre }}</div>{% endif %}</td><td>{{ item.remision or '-' }}{% if item.documento_despacho %}<div class="small text-muted">Despacho: {{ item.documento_despacho }}</div>{% endif %}</td></tr>{% else %}<tr><td colspan="7" class="text-center text-muted py-4">No hay movimientos registrados.</td></tr>{% endfor %}</tbody></table></div></section>
+</div>
+<div class="modal fade" id="empresaModal" tabindex="-1"><div class="modal-dialog"><form class="modal-content" method="post"><input type="hidden" name="accion" value="empresa"><div class="modal-header"><h2 class="modal-title fs-5">Nueva empresa</h2><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><label class="form-label">Nombre</label><input class="form-control mb-2" name="nombre" required><label class="form-label">Tipo</label><select class="form-select mb-2" name="tipo"><option>Proveedor de chatarra</option><option>Cliente de varillas</option><option>Cliente de palanquillas</option><option>Otro</option></select><label class="form-label">RUC</label><input class="form-control mb-2" name="ruc"><label class="form-label">Contacto</label><input class="form-control mb-2" name="contacto"><label class="form-label">Teléfono</label><input class="form-control" name="telefono"></div><div class="modal-footer"><button class="btn btn-primary" type="submit">Guardar</button></div></form></div></div>
+<div class="modal fade" id="vehiculoModal" tabindex="-1"><div class="modal-dialog"><form class="modal-content" method="post"><input type="hidden" name="accion" value="vehiculo"><div class="modal-header"><h2 class="modal-title fs-5">Nuevo vehículo</h2><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><label class="form-label">Tipo</label><input class="form-control mb-2" name="tipo" placeholder="Camión, semirremolque..." required><label class="form-label">Marca</label><input class="form-control mb-2" name="marca"><label class="form-label">Chapa</label><input class="form-control" name="chapa" required></div><div class="modal-footer"><button class="btn btn-primary" type="submit">Guardar</button></div></form></div></div>
+<div class="modal fade" id="choferModal" tabindex="-1"><div class="modal-dialog"><form class="modal-content" method="post"><input type="hidden" name="accion" value="chofer"><div class="modal-header"><h2 class="modal-title fs-5">Nuevo chofer</h2><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><label class="form-label">Nombre y apellido</label><input class="form-control mb-2" name="nombre" required><label class="form-label">Cédula</label><input class="form-control mb-2" name="documento"><label class="form-label">Teléfono</label><input class="form-control" name="telefono"></div><div class="modal-footer"><button class="btn btn-primary" type="submit">Guardar</button></div></form></div></div>
+<section class="bascula-card p-4 mb-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div><h2 class="h5 mb-1">Entradas abiertas</h2><p class="small text-muted mb-0">Seleccione un camión y pulse F2, haga doble clic o use el botón para registrar la salida.</p></div>
+  </div>
+  <div class="table-responsive"><table class="table table-hover align-middle bascula-table" id="tabla-entradas-abiertas"><thead><tr><th>Ticket</th><th>Camión</th><th>Producto</th><th>Entrada</th><th>Fecha</th><th>Acción</th></tr></thead><tbody>
+    {% for item in pesajes_abiertos %}<tr data-pesaje-id="{{ item.id }}" tabindex="0"><td>{{ item.numero }}</td><td>{{ item.vehiculo.chapa if item.vehiculo else 'Sin chapa' }}{% if item.chofer %}<div class="small text-muted">{{ item.chofer.nombre }}</div>{% endif %}</td><td>{{ item.producto }}</td><td>{{ '%.3f'|format(item.peso_entrada) }} {{ item.unidad }}</td><td>{{ item.entrada_at.strftime('%d/%m/%Y %H:%M') }}</td><td><button type="button" class="btn btn-sm btn-primary seleccionar-salida" data-pesaje-id="{{ item.id }}"><i class="bi bi-box-arrow-up me-1"></i>Dar salida</button></td></tr>{% else %}<tr><td colspan="6" class="text-center text-muted">No hay camiones pendientes de salida.</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+<section class="bascula-card p-4 mb-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3"><div><h2 class="h5 mb-1">Catálogo de productos</h2><p class="small text-muted mb-0">Los productos desactivados no aparecen para nuevos pesajes y se conservan en el historial.</p></div><button class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#productoModal"><i class="bi bi-plus-lg me-1"></i>Nuevo producto</button></div>
+  <div class="table-responsive"><table class="table table-hover align-middle bascula-table"><thead><tr><th>Código</th><th>Producto</th><th>Unidad</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>{% for item in productos_todos %}<tr><td>{{ item.codigo }}</td><td>{{ item.nombre }}</td><td>{{ item.unidad }}</td><td>{{ 'Activo' if item.activo else 'Desactivado' }}</td><td>{% if item.activo %}<button type="button" class="btn btn-sm btn-outline-primary editar-producto" data-bs-toggle="modal" data-bs-target="#productoModal" data-id="{{ item.id }}" data-codigo="{{ item.codigo }}" data-nombre="{{ item.nombre }}" data-unidad="{{ item.unidad }}"><i class="bi bi-pencil"></i></button><form method="post" class="d-inline"><input type="hidden" name="accion" value="producto_eliminar"><input type="hidden" name="producto_id" value="{{ item.id }}"><button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('¿Desactivar este producto?')"><i class="bi bi-trash"></i></button></form>{% else %}<span class="text-muted">Sin acciones</span>{% endif %}</td></tr>{% else %}<tr><td colspan="5" class="text-center text-muted">Aún no hay productos registrados.</td></tr>{% endfor %}</tbody></table></div>
+</section>
+<div class="modal fade" id="productoModal" tabindex="-1"><div class="modal-dialog"><form class="modal-content" method="post" id="productoForm"><input type="hidden" name="accion" value="producto"><input type="hidden" name="producto_id" id="producto-id"><div class="modal-header"><h2 class="modal-title fs-5" id="productoModalTitle">Nuevo producto</h2><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><label class="form-label">Código</label><input class="form-control mb-2" name="codigo" id="producto-codigo" placeholder="CHAT-001" required><label class="form-label">Nombre</label><input class="form-control mb-2" name="nombre" id="producto-nombre" required><label class="form-label">Unidad</label><select class="form-select" name="unidad" id="producto-unidad"><option>kg</option><option>ton</option><option>unidad</option></select></div><div class="modal-footer"><button class="btn btn-primary" type="submit">Guardar producto</button></div></form></div></div>
+  </div>
+<datalist id="productos-catalogo">{% for item in productos %}<option value="{{ item.nombre }}" data-producto-id="{{ item.id }}">{{ item.codigo }} · {{ item.unidad }}</option>{% endfor %}</datalist>
+<script>
+  (async () => {
+    const sectionByTitle = (title, id, replacement = title) => {
+      const matches = [...document.querySelectorAll('h2')].filter((item) => item.textContent.trim() === title).map((item) => item.closest('section')).filter(Boolean);
+      const section = matches.at(-1);
+      matches.slice(0, -1).forEach((duplicate) => duplicate.remove());
+      const heading = section?.querySelector('h2');
+      if (section) { section.id = id; section.classList.add('bascula-section'); heading.textContent = replacement; return section; }
+      return null;
+    };
+    const sections = {
+      'entrada-camion': sectionByTitle('Entrada de camión', 'entrada-camion'),
+      'salida-camion': sectionByTitle('Cerrar salida de camión', 'salida-camion'),
+      'registros': sectionByTitle('Pesajes recientes', 'registros'),
+      'nuevo-movimiento': sectionByTitle('Nuevo movimiento', 'nuevo-movimiento'),
+      'registros-catalogos': sectionByTitle('Catálogos', 'registros-catalogos', 'Registros'),
+      'reporte-movimientos': sectionByTitle('Reporte de movimientos', 'reporte-movimientos'),
+    };
+    const openTitle = [...document.querySelectorAll('h2')].find((item) => item.textContent.trim() === 'Entradas abiertas');
+    sections['entradas-abiertas'] = openTitle?.closest('section');
+    sections['entradas-abiertas']?.setAttribute('id', 'entradas-abiertas');
+    const productsTitle = [...document.querySelectorAll('h2')].find((item) => item.textContent.trim() === 'Catálogo de productos');
+    sections.productos = productsTitle?.closest('section');
+    sections.productos?.setAttribute('id', 'productos');
+    const selectedSector = new URLSearchParams(window.location.search).get('sector');
+    const validSectors = new Set(['entrada-camion', 'salida-camion', 'entradas-abiertas', 'nuevo-movimiento', 'registros', 'registros-catalogos', 'productos', 'reporte-movimientos']);
+    const content = document.querySelector('.bascula-content');
+    Object.values(sections).forEach((section) => { if (section) section.hidden = true; });
+    if (validSectors.has(selectedSector) && sections[selectedSector]) {
+      content?.classList.add('is-active');
+      sections[selectedSector].hidden = false;
+      const selectedShell = sections[selectedSector].closest('.col-xl-6, .col-xl-8, .col-xl-4');
+      selectedShell?.classList.add('bascula-selected-shell');
+      document.querySelector('.bascula-sectors')?.classList.add('d-none');
+      const backLink = document.createElement('a');
+      backLink.className = 'btn btn-outline-secondary mb-3';
+      backLink.href = '{{ url_for("bascula") }}';
+      backLink.innerHTML = '<i class="bi bi-arrow-left me-1"></i>Volver a sectores de Báscula';
+      sections[selectedSector].parentElement.insertBefore(backLink, sections[selectedSector]);
+    } else {
+      content?.classList.remove('is-active');
+    }
+    document.querySelectorAll('form').forEach((form) => {
+      const operation = form.querySelector('select[name="tipo_operacion"]');
+      const remision = form.querySelector('input[name="remision"]');
+      if (!operation || !remision) return;
+      const remisionGroup = remision.closest('[class*="col-"]') || remision.parentElement;
+      const updateRemisionVisibility = () => {
+        const showRemision = operation.value !== 'compra';
+        remisionGroup.hidden = !showRemision;
+        if (!showRemision) remision.value = '';
+      };
+      operation.addEventListener('change', updateRemisionVisibility);
+      updateRemisionVisibility();
+    });
+    let scalePort = null;
+    let scaleReader = null;
+    let scaleReading = false;
+    let localScaleConnected = false;
+    let autoReconnectInProgress = false;
+    let activeWeightTarget = document.getElementById('peso-entrada');
+    const lcd = document.getElementById('peso-lcd');
+    const lcdStatus = document.getElementById('peso-lcd-status');
+    const connectButton = document.getElementById('conectar-bascula');
+    const disconnectButton = document.getElementById('desconectar-bascula');
+    const baudRate = document.getElementById('baud-rate');
+    const captureStartButton = document.getElementById('iniciar-captura');
+    const captureStopButton = document.getElementById('detener-captura');
+    const captureClearButton = document.getElementById('limpiar-captura');
+    const captureDownloadButton = document.getElementById('descargar-captura');
+    const captureStatus = document.getElementById('estado-captura');
+    const captureTable = document.getElementById('tabla-captura');
+    let captureActive = false;
+    let captureRows = [];
+    let lastCapturedRaw = '';
+    let lastCapturedAt = 0;
+    const normalizeScaleWeight = (value) => {
+      const raw = String(value ?? '').trim();
+      if (!raw) return '';
+      const hasKgUnit = /(?:^|\s)(?:kg|kgs|kilos?)(?:\s|$)/i.test(raw);
+      const hasGramUnit = /(?:^|\s)(?:g|gr|gram|gramos?)(?:\s|$)/i.test(raw);
+      const lastNumber = raw.match(/[+-]?\d+(?:[.,]\d+)?/g)?.at(-1);
+      if (!lastNumber) return '';
+
+      let numeric = Number.parseFloat(lastNumber.replace(',', '.'));
+      if (!Number.isFinite(numeric)) return '';
+
+      if (!hasKgUnit && !hasGramUnit && numeric === 1) {
+        numeric = 0;
+      } else if (hasGramUnit && numeric >= 1000) {
+        numeric /= 1000;
+      } else if (!hasKgUnit && !hasGramUnit && Number.isInteger(numeric) && numeric >= 1000) {
+        const possibleKg = numeric / 1000;
+        if (possibleKg >= 1 && possibleKg <= 500) {
+          numeric = possibleKg;
+        }
+      }
+      return String(numeric).replace(/\.0+$/, '').replace(/(\.\d*?)0+$/, '$1');
+    };
+    const setWeight = (value) => {
+      const normalized = normalizeScaleWeight(value);
+      if (!normalized) return;
+      lcd && (lcd.textContent = `${normalized} kg`);
+      if (activeWeightTarget) activeWeightTarget.value = normalized;
+      fetch('{{ url_for("publicar_lectura_bascula") }}', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ value: normalized }) }).catch(() => {});
+    };
+    const updateCaptureControls = () => {
+      captureStartButton && (captureStartButton.disabled = captureActive);
+      captureStopButton && (captureStopButton.disabled = !captureActive);
+      captureDownloadButton && (captureDownloadButton.disabled = captureRows.length === 0);
+      if (captureStatus) captureStatus.textContent = `${captureActive ? 'Captura activa' : 'Captura detenida'} · ${captureRows.length} lecturas`;
+    };
+    const renderCaptureRows = () => {
+      if (!captureTable) return;
+      if (!captureRows.length) {
+        captureTable.innerHTML = '<tr><td colspan="3" class="weight-capture-empty text-center">Inicie la captura y coloque el peso patrón.</td></tr>';
+        updateCaptureControls();
+        return;
+      }
+      captureTable.innerHTML = captureRows.map((row) => `<tr><td>${row.time}</td><td><code>${row.raw}</code></td><td>${row.normalized || '-' } kg</td></tr>`).join('');
+      captureTable.parentElement.scrollTop = captureTable.parentElement.scrollHeight;
+      updateCaptureControls();
+    };
+    const captureFrame = (frame) => {
+      if (!captureActive) return;
+      const raw = frame.trim();
+      if (!raw) return;
+      const now = Date.now();
+      if (raw === lastCapturedRaw && now - lastCapturedAt < 500) return;
+      const normalized = normalizeScaleWeight(raw);
+      captureRows.push({ time: new Date(now).toLocaleTimeString(), raw, normalized });
+      lastCapturedRaw = raw;
+      lastCapturedAt = now;
+      renderCaptureRows();
+    };
+    const downloadCapture = () => {
+      const csvRows = [['Hora', 'Trama recibida', 'Valor convertido (kg)'], ...captureRows.map((row) => [row.time, row.raw, row.normalized || ''])];
+      const csv = '\ufeff' + csvRows.map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(';')).join('\r\n');
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+      link.download = `captura-bascula-${new Date().toISOString().replace(/[:.]/g, '-')}.csv`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    };
+    captureStartButton?.addEventListener('click', () => { captureRows = []; lastCapturedRaw = ''; lastCapturedAt = 0; captureActive = true; renderCaptureRows(); });
+    captureStopButton?.addEventListener('click', () => { captureActive = false; updateCaptureControls(); });
+    captureClearButton?.addEventListener('click', () => { captureRows = []; lastCapturedRaw = ''; lastCapturedAt = 0; renderCaptureRows(); });
+    captureDownloadButton?.addEventListener('click', downloadCapture);
+    updateCaptureControls();
+    const updateFromRemoteScale = async () => {
+      if (localScaleConnected) return;
+      try {
+        const response = await fetch('{{ url_for("obtener_lectura_bascula") }}', { cache: 'no-store' });
+        if (!response.ok) return;
+        const reading = await response.json();
+        const normalized = normalizeScaleWeight(reading.value);
+        if (normalized) {
+          lcd && (lcd.textContent = `${normalized} kg`);
+          lcdStatus && (lcdStatus.textContent = `Lectura remota · PC conectada · ${reading.updated_at || ''}`);
+        }
+      } catch (error) { console.debug('Lectura remota no disponible.', error); }
+    };
+    const readScaleStream = async () => {
+      if (!scalePort?.readable || scaleReading) return;
+      scaleReading = true;
+      scaleReader = scalePort.readable.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      try {
+        while (scaleReading) {
+          const result = await scaleReader.read();
+          if (result.done) break;
+          buffer += decoder.decode(result.value || new Uint8Array(), { stream: true });
+          const frames = buffer.split(/[\r\n]+/);
+          buffer = frames.pop() || '';
+          for (const frame of frames) {
+            const matches = frame.match(/[+-]?\d+(?:[.,]\d+)?/g);
+            if (matches?.length) { captureFrame(frame); setWeight(matches.at(-1)); }
+          }
+          if (buffer.length > 120) buffer = buffer.slice(-120);
+        }
+      } catch (error) {
+        if (scaleReading) { console.error(error); lcdStatus.textContent = 'Error de lectura. Revise COM1 y la conexión.'; }
+      } finally {
+        scaleReader?.releaseLock();
+        scaleReader = null;
+        scaleReading = false;
+      }
+    };
+    const startScalePort = async (port) => {
+      try {
+        scalePort = port;
+        await scalePort.open({ baudRate: Number(baudRate.value) || 9600, dataBits: 8, parity: 'none', stopBits: 1, flowControl: 'none' });
+        localScaleConnected = true;
+        lcdStatus.textContent = `Conectada · COM1 / PL2303GT · ${baudRate.value} baudios`;
+        connectButton.disabled = true;
+        disconnectButton.disabled = false;
+        readScaleStream();
+      } catch (error) {
+        scalePort = null;
+        localScaleConnected = false;
+        console.error(error);
+        lcdStatus.textContent = 'Puerto no conectado · Seleccione el adaptador PL2303GT';
+      }
+    };
+    const connectScale = async () => {
+      if (!('serial' in navigator)) { alert('Este navegador no permite Web Serial. Use Chrome o Edge en la PC conectada a la báscula.'); return; }
+      try {
+        const port = await navigator.serial.requestPort();
+        await startScalePort(port);
+      } catch (error) {
+        console.error(error);
+        lcdStatus.textContent = 'Puerto no conectado · Seleccione el adaptador PL2303GT';
+      }
+    };
+    const reconnectAuthorizedScale = async () => {
+      if (!('serial' in navigator) || localScaleConnected || autoReconnectInProgress) return;
+      autoReconnectInProgress = true;
+      try {
+        const ports = await navigator.serial.getPorts();
+        const port = ports[0];
+        if (port) {
+          lcdStatus.textContent = 'Conectando a la báscula autorizada...';
+          await startScalePort(port);
+        } else {
+          lcdStatus.textContent = 'Báscula lista · autorice el puerto una vez';
+        }
+      } catch (error) {
+        console.debug('No hay un puerto serial autorizado disponible.', error);
+      } finally {
+        autoReconnectInProgress = false;
+      }
+    };
+    const disconnectScale = async () => {
+      scaleReading = false;
+      try { await scaleReader?.cancel(); } catch (error) { console.debug(error); }
+      try { await scalePort?.close(); } catch (error) { console.debug(error); }
+      scalePort = null;
+      localScaleConnected = false;
+      connectButton.disabled = false;
+      disconnectButton.disabled = true;
+      lcdStatus.textContent = 'Puerto desconectado';
+    };
+    connectButton?.addEventListener('click', connectScale);
+    disconnectButton?.addEventListener('click', disconnectScale);
+    navigator.serial?.addEventListener('connect', reconnectAuthorizedScale);
+    navigator.serial?.addEventListener('disconnect', () => {
+      if (!scalePort) return;
+      scalePort = null;
+      localScaleConnected = false;
+      connectButton.disabled = false;
+      disconnectButton.disabled = true;
+      lcdStatus.textContent = 'Báscula desconectada · revise el cable USB';
+    });
+    const readButton = async (target) => {
+      activeWeightTarget = target;
+      if (scalePort) { lcdStatus.textContent = 'Lectura activa · el peso se copiará al campo seleccionado'; return; }
+      await connectScale();
+    };
+    document.getElementById('leer-bascula')?.addEventListener('click', () => readButton(document.getElementById('peso-entrada')));
+    document.getElementById('leer-bascula-salida')?.addEventListener('click', () => readButton(document.getElementById('peso-salida')));
+    reconnectAuthorizedScale();
+    window.setInterval(reconnectAuthorizedScale, 2000);
+    updateFromRemoteScale();
+    window.setInterval(updateFromRemoteScale, 800);
+    const productInput = document.querySelector('input[name="producto"]');
+    productInput?.setAttribute('list', 'productos-catalogo');
+    const salidaSelect = document.querySelector('select[name="pesaje_id"]');
+    const salidaPeso = document.getElementById('peso-salida');
+    const selectPesaje = (pesajeId) => {
+      if (!salidaSelect) return;
+      salidaSelect.value = String(pesajeId);
+      salidaSelect.dispatchEvent(new Event('change'));
+      salidaPeso?.focus();
+      document.querySelectorAll('#tabla-entradas-abiertas tr[data-pesaje-id]').forEach((row) => row.classList.toggle('table-primary', row.dataset.pesajeId === String(pesajeId)));
+    };
+    document.querySelectorAll('#tabla-entradas-abiertas tr[data-pesaje-id]').forEach((row) => {
+      row.addEventListener('click', () => selectPesaje(row.dataset.pesajeId));
+      row.addEventListener('dblclick', () => { selectPesaje(row.dataset.pesajeId); salidaPeso?.focus(); });
+      row.addEventListener('keydown', (event) => { if (event.key === 'F2') { event.preventDefault(); selectPesaje(row.dataset.pesajeId); } });
+    });
+    document.querySelectorAll('.seleccionar-salida').forEach((button) => button.addEventListener('click', (event) => { event.stopPropagation(); selectPesaje(button.dataset.pesajeId); }));
+    document.addEventListener('keydown', (event) => { if (event.key !== 'F2' || event.target.matches('input, textarea, select')) return; event.preventDefault(); const row = document.querySelector('#tabla-entradas-abiertas tr.table-primary') || document.querySelector('#tabla-entradas-abiertas tr[data-pesaje-id]'); if (row) selectPesaje(row.dataset.pesajeId); });
+    const productoModal = document.getElementById('productoModal');
+    productoModal?.addEventListener('show.bs.modal', (event) => {
+      const button = event.relatedTarget;
+      const editing = button?.classList.contains('editar-producto');
+      document.getElementById('productoForm').querySelector('[name="accion"]').value = editing ? 'producto_editar' : 'producto';
+      document.getElementById('productoModalTitle').textContent = editing ? 'Editar producto' : 'Nuevo producto';
+      document.getElementById('producto-id').value = editing ? button.dataset.id : '';
+      document.getElementById('producto-codigo').value = editing ? button.dataset.codigo : '';
+      document.getElementById('producto-nombre').value = editing ? button.dataset.nombre : '';
+      document.getElementById('producto-unidad').value = editing ? button.dataset.unidad : 'kg';
+    });
+  })();
+</script>
+{% endblock %}

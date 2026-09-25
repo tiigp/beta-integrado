@@ -1,0 +1,105 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <div class="text-uppercase small fw-semibold text-success">Recursos Humanos</div>
+      <h1 class="mb-1">Planificador de vacaciones</h1>
+      <p class="text-muted mb-0">Personal con un año o más de antigüedad y planificación anual de 12 días.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{{ url_for('rrhh') }}"><i class="bi bi-arrow-left me-1"></i>Volver a RRHH</a>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ 'danger' if category == 'error' else category }}" role="alert">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <div class="row g-4 mb-4">
+    <div class="col-lg-5">
+      <div class="card h-100 shadow-sm border-0">
+        <div class="card-body p-4">
+          <h2 class="h5">Planificar vacaciones</h2>
+          <p class="small text-muted">Seleccione a un colaborador elegible y defina la fecha de inicio. El período se registra automáticamente por 12 días.</p>
+          <form method="post" class="row g-3">
+            <div class="col-12">
+              <label class="form-label" for="colaborador_id">Colaborador</label>
+              <select class="form-select" id="colaborador_id" name="colaborador_id" required {% if not planificables %}disabled{% endif %}>
+                <option value="">Seleccione un colaborador</option>
+                {% for colaborador in planificables %}
+                  <option value="{{ colaborador.id }}">{{ colaborador.nombre }} · Legajo {{ colaborador.legajo }}</option>
+                {% endfor %}
+              </select>
+              {% if not planificables %}<div class="form-text">No hay colaboradores con 12 días disponibles para planificar.</div>{% endif %}
+            </div>
+            <div class="col-md-7">
+              <label class="form-label" for="fecha_inicio">Inicio de vacaciones</label>
+              <input class="form-control" type="date" id="fecha_inicio" name="fecha_inicio" min="{{ hoy.isoformat() }}" required {% if not planificables %}disabled{% endif %}>
+            </div>
+            <div class="col-md-5">
+              <label class="form-label" for="dias">Días</label>
+              <input class="form-control" type="number" id="dias" name="dias" value="12" min="12" max="12" readonly>
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="observacion">Observación</label>
+              <textarea class="form-control" id="observacion" name="observacion" rows="2" placeholder="Opcional"></textarea>
+            </div>
+            <div class="col-12"><button class="btn btn-success w-100" type="submit" {% if not planificables %}disabled{% endif %}><i class="bi bi-calendar-plus me-1"></i>Planificar 12 días</button></div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-7">
+      <div class="card h-100 shadow-sm border-0">
+        <div class="card-body p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="h5 mb-0">Personal con un año o más</h2>
+            <span class="badge text-bg-success">{{ elegibles|length }} personas</span>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <thead><tr><th>Colaborador</th><th>Ingreso</th><th class="text-center">Años</th><th class="text-center">Disponibles</th></tr></thead>
+              <tbody>
+                {% for colaborador in elegibles %}
+                <tr>
+                  <td><div class="fw-semibold">{{ colaborador.nombre }}</div><div class="small text-muted">Legajo {{ colaborador.legajo }}</div></td>
+                  <td>{{ colaborador.fecha_ingreso.strftime('%d/%m/%Y') }}</td>
+                  <td class="text-center">{{ colaborador.vacaciones_resumen.anios_cumplidos }}</td>
+                  <td class="text-center"><span class="badge {{ 'text-bg-success' if colaborador.vacaciones_resumen.dias_disponibles >= 12 else 'text-bg-secondary' }}">{{ colaborador.vacaciones_resumen.dias_disponibles }} días</span></td>
+                </tr>
+                {% else %}<tr><td colspan="4" class="text-center text-muted py-4">Todavía no hay personal con un año cumplido.</td></tr>{% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div><h2 class="h5 mb-1">Vacaciones planificadas</h2><p class="small text-muted mb-0">Descargue la constancia con inicio, finalización y fecha de retorno.</p></div>
+        <a class="btn btn-outline-success btn-sm" href="{{ url_for('rrhh_vacaciones_notificaciones') }}"><i class="bi bi-bell me-1"></i>Notificaciones</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead><tr><th>Colaborador</th><th>Período</th><th>Retorno</th><th>Estado</th><th class="text-end">Acciones</th></tr></thead>
+          <tbody>
+            {% for agenda in agendas %}
+            <tr>
+              <td><div class="fw-semibold">{{ agenda.colaborador.nombre }}</div><div class="small text-muted">Legajo {{ agenda.colaborador.legajo }}</div></td>
+              <td>{{ agenda.fecha_inicio.strftime('%d/%m/%Y') }} al {{ agenda.fecha_fin.strftime('%d/%m/%Y') }}<div class="small text-muted">{{ agenda.dias }} días</div></td>
+              <td>{{ agenda.fecha_retorno.strftime('%d/%m/%Y') }}</td>
+              <td><span class="badge text-bg-light border">{{ agenda.estado }}</span></td>
+              <td class="text-end text-nowrap"><a class="btn btn-sm btn-outline-primary" href="{{ url_for('rrhh_vacaciones_pdf', vacacion_id=agenda.id) }}" title="Descargar constancia"><i class="bi bi-file-earmark-pdf me-1"></i>Constancia</a></td>
+            </tr>
+            {% else %}<tr><td colspan="5" class="text-center text-muted py-4">No hay vacaciones planificadas.</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

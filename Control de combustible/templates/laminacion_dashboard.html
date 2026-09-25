@@ -1,0 +1,99 @@
+{% extends "layout.html" %}
+{% block content %}
+<style>
+  .lam-page { max-width: 1440px; margin: 0 auto; color: #172033; }
+  .lam-hero { padding: 1.5rem 1.7rem; border: 1px solid #b9d9d0; border-radius: 6px 18px 6px 18px; background: linear-gradient(120deg, #e9f7f0, #f8fbf9); }
+  .lam-hero h1 { margin: 0; color: #124c40; }
+  .lam-card { height: 100%; border: 1px solid #d5e5df; border-radius: 6px 14px 6px 14px; background: #fff; box-shadow: 0 8px 22px rgba(31,65,88,.08); }
+  .lam-card h2 { color: #124c40; }
+  .lam-guide { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; margin-bottom: 1rem; }
+  .lam-guide-step { display: flex; align-items: center; gap: .7rem; min-height: 66px; padding: .8rem 1rem; border: 1px solid #d5e5df; background: #fff; }
+  .lam-guide-step strong { display: block; color: #124c40; }
+  .lam-guide-number { display: grid; width: 34px; height: 34px; flex: 0 0 34px; place-items: center; border-radius: 50%; color: #fff; background: #168269; font-weight: 700; }
+  .lam-event-form { border: 2px solid #168269; }
+  .lam-live { margin-bottom: 1rem; padding: 1rem 1.2rem; border: 1px solid #a6d8c6; border-left: 6px solid #168269; background: #effaf5; }
+  .lam-live-title { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: .8rem; color: #124c40; }
+  .lam-live-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .65rem; }
+  .lam-live-item { min-height: 68px; padding: .65rem .75rem; background: #fff; border: 1px solid #d5e5df; }
+  .lam-live-item span { display: block; color: #607285; font-size: .75rem; }
+  .lam-live-item strong { display: block; margin-top: .2rem; color: #124c40; font-size: 1.05rem; }
+  .lam-event-form .form-label { margin-bottom: .3rem; font-weight: 700; color: #124c40; }
+  .lam-event-form .form-control, .lam-event-form .form-select { min-height: 48px; font-size: 1rem; }
+  .lam-event-form button[type="submit"] { min-height: 52px; font-size: 1.05rem; font-weight: 700; }
+  .lam-metric { padding: .9rem; border-left: 4px solid #168269; background: #f1faf6; }
+  .lam-metric strong { display: block; font-size: 1.35rem; color: #124c40; }
+  .lam-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+  .lam-grid > section { min-width: 0; }
+  .lam-table th { color: #607285; font-size: .78rem; text-transform: uppercase; }
+  @media (max-width: 950px) { .lam-grid { grid-template-columns: 1fr; } .lam-guide { grid-template-columns: repeat(2, minmax(0, 1fr)); } .lam-live-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 576px) { .lam-guide { grid-template-columns: 1fr; } .lam-live-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>
+<div class="container-fluid py-4 lam-page">
+  <header class="lam-hero mb-4 d-flex justify-content-between align-items-center gap-3">
+    <div><div class="small text-uppercase fw-semibold text-success">Laminacion</div><h1>Control de produccion</h1><p class="mb-0 text-muted">Horno, despunte, paradas y trazabilidad por colada.</p></div>
+    <div class="d-flex gap-2 flex-wrap"><a class="btn btn-outline-success" href="{{ url_for('produccion_dashboard') }}"><i class="bi bi-arrow-left me-1"></i>Panel</a><a class="btn btn-success" href="{{ url_for('laminacion_reporte') }}"><i class="bi bi-printer me-1"></i>Reporte por turno</a></div>
+  </header>
+
+  <section class="lam-live" aria-label="Referencia de colada">
+    <div class="lam-live-title"><strong><i class="bi bi-display me-2"></i>Referencia de colada para el operador</strong>{% if produccion_referencia %}<span class="badge text-bg-{{ 'success' if produccion_referencia.estado == 'abierta' else 'secondary' }}">{{ 'En produccion' if produccion_referencia.estado == 'abierta' else 'Finalizada' }}</span>{% endif %}</div>
+    {% if produccion_referencia %}<div class="lam-live-grid"><div class="lam-live-item"><span>Numero de colada</span><strong>{{ produccion_referencia.numero_colada }}</strong></div><div class="lam-live-item"><span>Palanquillas de la colada</span><strong>{{ produccion_referencia.cantidad_palanquillas }}</strong></div><div class="lam-live-item"><span>Carbono</span><strong>{{ produccion_referencia.carbono or '-' }}</strong></div><div class="lam-live-item"><span>Manganeso</span><strong>{{ produccion_referencia.manganeso or '-' }}</strong></div><div class="lam-live-item"><span>Silicio</span><strong>{{ produccion_referencia.silicio or '-' }}</strong></div><div class="lam-live-item"><span>Temperatura / velocidad</span><strong>{{ '%.2f'|format(produccion_referencia.temperatura) }} / {{ '%.2f'|format(produccion_referencia.velocidad) }}</strong></div><div class="lam-live-item"><span>Inicio de colada</span><strong>{{ produccion_referencia.inicio.strftime('%d/%m/%Y %H:%M') }}</strong></div><div class="lam-live-item"><span>Fin o cambio de colada</span><strong>{{ produccion_referencia.fin.strftime('%d/%m/%Y %H:%M') if produccion_referencia.fin else 'En curso' }}</strong></div></div>{% else %}<p class="mb-0 text-muted">Todavia no hay una colada registrada para mostrar.</p>{% endif %}
+  </section>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}{% for category, message in messages %}<div class="alert alert-{{ 'danger' if category == 'error' else category }}">{{ message }}</div>{% endfor %}{% endwith %}
+
+  <div class="lam-guide" aria-label="Pasos para registrar un evento">
+    <div class="lam-guide-step"><span class="lam-guide-number">1</span><span><strong>Que ocurrio?</strong><small>Parada o chatarra</small></span></div>
+    <div class="lam-guide-step"><span class="lam-guide-number">2</span><span><strong>Donde ocurrio?</strong><small>Sector y stand</small></span></div>
+    <div class="lam-guide-step"><span class="lam-guide-number">3</span><span><strong>Cual fue el problema?</strong><small>Seleccione una opcion</small></span></div>
+    <div class="lam-guide-step"><span class="lam-guide-number">4</span><span><strong>Guardar</strong><small>Pulse registrar evento</small></span></div>
+  </div>
+
+  <div class="lam-grid">
+    <section class="lam-card p-4"><h2 class="h5 mb-3"><i class="bi bi-box-seam me-2"></i>Palanquillas a cama de enfriamiento</h2><p class="small text-muted">Indique cuantas palanquillas pasaron correctamente y cuantas fueron chatarreadas.</p><form method="post" class="row g-2"><input type="hidden" name="accion" value="despunte"><div class="col-12"><label class="form-label">Colada</label><select class="form-select" name="produccion_id" required><option value="">Seleccione la colada</option>{% for item in producciones %}<option value="{{ item.id }}">{{ item.numero_colada }} · {{ item.estado|capitalize }} · {{ item.cantidad_palanquillas }} palanquillas</option>{% endfor %}</select></div><div class="col-6"><label class="form-label">Pasaron a la cama</label><input class="form-control" name="pasaron" type="number" min="0" required></div><div class="col-6"><label class="form-label">Chatarreadas</label><input class="form-control" name="chatarra" type="number" min="0" required></div><div class="col-12"><label class="form-label">Observacion</label><input class="form-control" name="observacion"></div><div class="col-12"><button class="btn btn-success w-100" type="submit">Guardar cantidades</button></div></form></section>
+
+    <section class="lam-card p-4"><h2 class="h5 mb-3"><i class="bi bi-stopwatch me-2"></i>Chatarra o Parada</h2><form method="post" class="row g-2"><input type="hidden" name="accion" value="parada"><input type="hidden" name="produccion_id" value="{{ produccion.id if produccion else '' }}"><div class="col-6"><label class="form-label">Accion</label><select class="form-select" name="tipo_accion"><option value="parada">Parada</option><option value="chatarra">Chatarra</option></select></div><div class="col-6"><label class="form-label">Inicio</label><input class="form-control" name="inicio" type="datetime-local" required></div><div class="col-12"><label class="form-label">Sector</label><select class="form-select" id="sector" name="sector" required><option value="">Seleccione sector</option>{% for sector in sectores %}<option>{{ sector }}</option>{% endfor %}</select></div><div class="col-12" id="stand-wrap" hidden><label class="form-label">Stand</label><select class="form-select" name="stand">{% for stand in stands %}<option>{{ stand }}</option>{% endfor %}</select></div><div class="col-12"><label class="form-label">Problema</label><select class="form-select" id="problema" name="problema" required></select></div><div class="col-6"><label class="form-label">Palanquillas chatarra</label><input class="form-control" name="chatarra_parada" type="number" min="0" value="0"></div><div class="col-6"><label class="form-label">Observacion</label><input class="form-control" name="observacion"></div><div class="col-12"><button class="btn btn-warning w-100" type="submit">Registrar evento</button></div></form>{% if paradas_abiertas %}<hr><strong>Paradas abiertas</strong>{% for parada in paradas_abiertas %}<form method="post" class="d-flex justify-content-between align-items-center gap-2 mt-2"><input type="hidden" name="accion" value="cerrar_parada"><input type="hidden" name="parada_id" value="{{ parada.id }}"><span class="small">{{ parada.sector }} · {{ parada.problema }}</span><button class="btn btn-sm btn-outline-success" type="submit">Finalizar</button></form>{% endfor %}{% endif %}</section>
+  </div>
+
+  <section class="lam-card p-4 mb-3"><div class="d-flex justify-content-between align-items-center mb-3"><div><h2 class="h5 mb-1">Acumulado automatico del turno</h2><p class="small text-muted mb-0">Se actualiza con cada registro de despunte desde {{ turno_inicio.strftime('%H:%M') }}.</p></div><span class="badge text-bg-success">Sin calculos manuales</span></div><div class="row g-3"><div class="col-md-6"><div class="lam-metric"><span>Palanquillas que pasaron a la cama</span><strong>{{ turno_pasaron }}</strong></div></div><div class="col-md-6"><div class="lam-metric"><span>Palanquillas chatarreadas</span><strong>{{ turno_chatarra }}</strong></div></div></div></section>
+
+  <section class="lam-card p-4"><div class="d-flex justify-content-between align-items-center mb-3"><h2 class="h5 mb-0">Historico de coladas</h2><a class="btn btn-sm btn-outline-success" href="{{ url_for('laminacion_reporte') }}">Ver estadisticas y reporte</a></div><div class="table-responsive"><table class="table table-hover lam-table"><thead><tr><th>Colada</th><th>Inicio</th><th>Estado</th><th>Total</th><th>Pasaron</th><th>Chatarra</th></tr></thead><tbody>{% for item in producciones %}<tr><td>{{ item.numero_colada }}</td><td>{{ item.inicio.strftime('%d/%m/%Y %H:%M') }}</td><td>{{ item.estado|capitalize }}</td><td>{{ item.cantidad_palanquillas }}</td><td>{{ item.palanquillas_pasaron }}</td><td>{{ item.palanquillas_chatarra }}</td></tr>{% else %}<tr><td colspan="6" class="text-center text-muted">No hay producciones registradas.</td></tr>{% endfor %}</tbody></table></div></section>
+</div>
+<script>
+const problemas = {{ problemas|tojson }};
+const sector = document.getElementById('sector');
+const problema = document.getElementById('problema');
+const standWrap = document.getElementById('stand-wrap');
+function actualizarProblemas() { const selected = sector.value; const values = (problemas[selected] || '').split('|').filter(Boolean); problema.innerHTML = values.map(value => `<option>${value}</option>`).join(''); standWrap.hidden = selected !== 'Stand'; }
+sector?.addEventListener('change', actualizarProblemas); actualizarProblemas();
+const eventForm = document.querySelector('input[name="accion"][value="parada"]')?.closest('form');
+eventForm?.classList.add('lam-event-form');
+const startInput = eventForm?.querySelector('input[name="inicio"]');
+if (startInput && !startInput.value) {
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  startInput.value = now.toISOString().slice(0, 16);
+}
+const actionSelect = eventForm?.querySelector('select[name="tipo_accion"]');
+actionSelect?.addEventListener('change', () => {
+  const label = eventForm.querySelector('input[name="chatarra_parada"]')?.closest('.col-6')?.querySelector('.form-label');
+  if (label) label.textContent = actionSelect.value === 'chatarra' ? 'Palanquillas chatarreadas' : 'Palanquillas afectadas';
+});
+document.querySelectorAll('form').forEach((form) => {
+  if (form.querySelector('input[name="accion"][value="cerrar_parada"]')) {
+    const wrapper = document.createElement('label');
+    wrapper.className = 'small d-flex align-items-center gap-2';
+    wrapper.textContent = 'Finalizar a las';
+    const input = document.createElement('input');
+    input.className = 'form-control form-control-sm';
+    input.name = 'fin';
+    input.type = 'datetime-local';
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    input.value = now.toISOString().slice(0, 16);
+    input.required = true;
+    wrapper.appendChild(input);
+    form.insertBefore(wrapper, form.querySelector('button[type="submit"]'));
+  }
+});
+</script>
+{% endblock %}

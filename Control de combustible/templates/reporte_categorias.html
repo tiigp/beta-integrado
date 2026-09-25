@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block content %}
+<style>
+  .category-report { max-width: 1180px; margin: 0 auto; }
+  .category-row summary { display: grid; grid-template-columns: 1.4fr .8fr .8fr .7fr .7fr; align-items: center; gap: 1rem; padding: 1rem; cursor: pointer; list-style: none; }
+  .category-row summary::-webkit-details-marker { display: none; }
+  .category-row summary:hover { background: #f7fafb; }
+  .category-row summary strong { color: #193c4a; }
+  .category-row summary .category-name::before { content: "▸"; display: inline-block; margin-right: .5rem; color: #217d78; transition: transform .15s ease; }
+  .category-row[open] summary .category-name::before { transform: rotate(90deg); }
+  .category-detail { padding: 0 1rem 1rem; background: #fbfdfd; border-top: 1px solid #edf1f3; }
+  .alert-product { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: .65rem .75rem; margin-top: .65rem; border-left: 3px solid #d39a24; background: #fff8e7; }
+  .alert-product strong { color: #674d13; }
+  .alert-product-actions { display: flex; align-items: center; gap: .75rem; }
+  @media (max-width: 700px) { .category-row summary { grid-template-columns: 1fr 1fr; } .category-row summary > :nth-child(n+3) { font-size: .8rem; } .alert-product { align-items: flex-start; flex-direction: column; } }
+</style>
+<div class="category-report">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4"><div><div class="small text-uppercase text-primary fw-semibold">Depósito / Reportes</div><h1 class="h3 mb-1">Reporte por categorías</h1><p class="text-muted mb-0">Haga clic en una categoría para consultar sus productos con alerta.</p></div><a class="btn btn-outline-secondary" href="{{ url_for('inventario') }}"><i class="bi bi-arrow-left me-1"></i>Volver al depósito</a></div>
+  <section class="card border-0 shadow-sm"><div class="card-body p-0"><div class="px-3 pt-3 pb-2 text-muted small">Las alertas corresponden a productos cuyo stock está en el mínimo configurado o por debajo.</div>{% for nombre, grupo in categorias %}<details class="category-row" {% if grupo.bajos %}open{% endif %}><summary><strong class="category-name">{{ nombre }}</strong><span>Stock: <strong>{{ '%.2f'|format(grupo.stock) }}</strong></span><span>{{ grupo.insumos }} producto(s)</span><span>Unidades: {{ grupo.productos|map(attribute='insumo.unidad')|unique|join(', ') }}</span><span>{% if grupo.bajos %}<span class="badge text-bg-warning">{{ grupo.bajos }} alerta(s)</span>{% else %}<span class="badge text-bg-success">Sin alertas</span>{% endif %}</span></summary><div class="category-detail">{% for item in grupo.productos if item.bajo %}<div class="alert-product"><span><strong>{{ item.insumo.nombre }}</strong><br><small>{{ item.insumo.codigo or 'Sin código' }} · Stock mínimo: {{ '%.2f'|format(item.insumo.stock_minimo) }} {{ item.insumo.unidad }}</small></span><span class="alert-product-actions"><span class="text-nowrap"><strong>{{ '%.2f'|format(item.stock) }} {{ item.insumo.unidad }}</strong><br><small class="text-danger">Reponer</small></span><a class="btn btn-sm btn-success text-nowrap" href="{{ producto_reposicion_whatsapp_url(item) }}" target="_blank" rel="noopener" title="Solicitar reposición por WhatsApp"><i class="bi bi-whatsapp me-1"></i>Solicitar reposición</a></span></div>{% else %}<p class="text-muted small mb-0 mt-3">Esta categoría no tiene productos con alerta.</p>{% endfor %}</div></details>{% else %}<div class="text-center text-muted py-5">No hay categorías para mostrar.</div>{% endfor %}</div></section>
+</div>
+{% endblock %}

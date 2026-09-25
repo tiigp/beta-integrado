@@ -1,0 +1,85 @@
+{% extends 'layout.html' %}
+{% block content %}
+<style>
+  .machine-reports { max-width: 1240px; margin: 0 auto; color: #172033; }
+  .machine-hero { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 1.25rem 1.4rem; border: 1px solid #d7e3ed; border-radius: 16px; background: linear-gradient(135deg, #f2fbfc, #ffffff 58%, #fff7eb); }
+  .machine-hero h1 { margin: 0; color: #12344a; font-size: clamp(1.55rem, 3vw, 2.25rem); font-weight: 800; }
+  .machine-hero p { margin: .35rem 0 0; color: #6c7d88; }
+  .machine-toolbar { display: flex; justify-content: space-between; align-items: center; gap: .8rem; flex-wrap: wrap; margin: 1rem 0; padding: .8rem 1rem; border: 1px solid #dbe5ec; border-radius: 12px; background: #fff; box-shadow: 0 6px 18px rgba(31, 41, 55, .05); }
+  .machine-toolbar .form-control { max-width: 145px; }
+  .machine-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; margin-bottom: 1rem; }
+  .machine-stat { padding: .9rem 1rem; border: 1px solid #dbe5ec; border-radius: 12px; background: #fff; }
+  .machine-stat span { display: block; color: #71838d; font-size: .76rem; text-transform: uppercase; letter-spacing: .08em; }
+  .machine-stat strong { display: block; margin-top: .25rem; color: #12344a; font-size: 1.35rem; }
+  .machine-card { margin-bottom: 1rem; border: 1px solid #dbe5ec; border-radius: 14px; background: #fff; box-shadow: 0 8px 22px rgba(31, 41, 55, .06); overflow: hidden; }
+  .machine-card summary { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.1rem; cursor: pointer; list-style: none; }
+  .machine-card summary::-webkit-details-marker { display: none; }
+  .machine-card summary:hover { background: #f8fbfc; }
+  .machine-card-title { display: flex; align-items: center; gap: .7rem; min-width: 0; }
+  .machine-icon { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 10px; background: #e4f5f6; color: #087e8b; flex: 0 0 38px; }
+  .machine-card-title strong { color: #173d52; }
+  .machine-card-title small { display: block; color: #7b8b94; }
+  .machine-metrics { display: flex; align-items: center; gap: 1.2rem; flex-wrap: wrap; justify-content: flex-end; }
+  .machine-metric { color: #637782; font-size: .82rem; text-align: right; }
+  .machine-metric strong { display: block; color: #173d52; font-size: .98rem; }
+  .machine-body { padding: 0 1.1rem 1.1rem; border-top: 1px solid #edf2f5; }
+  .machine-table { min-width: 980px; margin-top: 1rem; font-size: .84rem; }
+  .machine-table thead th { color: #526b78; background: #f1f6f8; white-space: nowrap; }
+  .machine-empty { padding: 1rem; color: #7b8b94; text-align: center; }
+  @media (max-width: 760px) { .machine-hero { display: block; } .machine-hero .btn { margin-top: .8rem; } .machine-summary { grid-template-columns: 1fr; } .machine-card summary { align-items: flex-start; flex-direction: column; } .machine-metrics { justify-content: flex-start; width: 100%; } .machine-metric { text-align: left; } }
+</style>
+<div class="machine-reports">
+  <header class="machine-hero">
+    <div><div class="small text-uppercase text-primary fw-semibold">Módulo de combustible</div><h1>Reportes por máquina</h1><p>Consulte cuántas cargas realizó cada equipo y revise el detalle de cada despacho.</p></div>
+    <a class="btn btn-outline-secondary" href="{{ url_for('reportes') }}"><i class="bi bi-arrow-left me-1"></i>Volver a reportes</a>
+  </header>
+
+  <div class="machine-toolbar">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <span class="text-muted small">Período:</span>
+      <a class="btn btn-sm {{ 'btn-primary' if period == 'all' else 'btn-outline-primary' }}" href="{{ url_for('reportes_maquinas', period='all') }}">Total</a>
+      <a class="btn btn-sm {{ 'btn-primary' if period == 'dia' else 'btn-outline-primary' }}" href="{{ url_for('reportes_maquinas', period='dia') }}">Día</a>
+      <a class="btn btn-sm {{ 'btn-primary' if period == 'semana' else 'btn-outline-primary' }}" href="{{ url_for('reportes_maquinas', period='semana') }}">Semana</a>
+      <a class="btn btn-sm {{ 'btn-primary' if period == 'mes' else 'btn-outline-primary' }}" href="{{ url_for('reportes_maquinas', period='mes') }}">Mes</a>
+      <form class="d-flex align-items-center gap-2 flex-wrap" method="get">
+        <input type="hidden" name="period" value="all">
+        <input type="date" class="form-control form-control-sm" name="fecha_desde" value="{{ fecha_desde or '' }}" aria-label="Fecha desde">
+        <input type="date" class="form-control form-control-sm" name="fecha_hasta" value="{{ fecha_hasta or '' }}" aria-label="Fecha hasta">
+        <button class="btn btn-sm btn-primary" type="submit">Filtrar</button>
+      </form>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <a class="btn btn-sm btn-outline-danger" href="{{ url_for('export_fuel_history_pdf', period=period, fecha_desde=fecha_desde or '', fecha_hasta=fecha_hasta or '') }}" target="_blank"><i class="bi bi-filetype-pdf me-1"></i>Ver PDF detallado</a>
+      <a class="btn btn-sm btn-outline-success" href="{{ url_for('export_fuel_history_excel', period=period, fecha_desde=fecha_desde or '', fecha_hasta=fecha_hasta or '') }}"><i class="bi bi-file-earmark-excel me-1"></i>Excel general</a>
+    </div>
+  </div>
+
+  <div class="alert alert-light border d-flex align-items-start gap-2 mb-3">
+    <i class="bi bi-info-circle text-primary mt-1"></i>
+    <div><strong>Detalle por máquina:</strong> revise las cargas aquí sin descargar nada. El PDF se abre en una pestaña nueva y el Excel contiene el resumen y el detalle completo de cada despacho.</div>
+  </div>
+
+  <div class="machine-summary">
+    <div class="machine-stat"><span>Máquinas</span><strong>{{ maquinas|length }}</strong></div>
+    <div class="machine-stat"><span>Cargas totales</span><strong>{{ maquinas|map(attribute='cargas')|map('length')|sum }}</strong></div>
+    <div class="machine-stat"><span>Litros totales</span><strong>{{ '{:,.1f}'.format(maquinas|map(attribute='resumen')|map(attribute='total_litros')|sum) }} L</strong></div>
+  </div>
+
+  {% for machine in maquinas %}
+  {% set item = machine.resumen %}
+  <details class="machine-card" {% if loop.first %}open{% endif %}>
+    <summary>
+      <div class="machine-card-title"><span class="machine-icon"><i class="bi bi-truck"></i></span><div><strong>{{ item.equipo.nombre }}</strong><small>{{ item.equipo.tipo or 'Sin tipo' }} · {{ item.equipo.responsable or 'Sin responsable' }}</small></div></div>
+      <div class="machine-metrics"><div class="machine-metric"><strong>{{ machine.cargas|length }}</strong>cargas</div><div class="machine-metric"><strong>{{ '{:,.1f}'.format(item.total_litros) }} L</strong>consumo</div><div class="machine-metric"><strong>{{ '{:,.0f}'.format(item.total_cost) }} Gs</strong>costo</div><a class="btn btn-sm btn-outline-danger" href="{{ url_for('export_machine_pdf', equipo_id=item.equipo.id, period=period, fecha_desde=fecha_desde or '', fecha_hasta=fecha_hasta or '') }}" target="_blank" onclick="event.stopPropagation()" title="Ver PDF de esta máquina"><i class="bi bi-filetype-pdf"></i></a></div>
+    </summary>
+    <div class="machine-body">
+      {% if machine.cargas %}
+      <div class="table-responsive"><table class="table table-hover align-middle machine-table"><thead><tr><th>Fecha</th><th>Litros</th><th>Responsable</th><th>Chofer</th><th>Hora</th><th>Horómetro</th><th>Km</th><th>Tipo</th><th>Observación</th><th>Comprobante</th></tr></thead><tbody>
+      {% for carga in machine.cargas %}<tr><td>{{ carga.fecha.strftime('%d/%m/%Y %H:%M') if carga.fecha else '-' }}</td><td><strong>{{ '{:,.1f}'.format(carga.litros or 0) }} L</strong></td><td>{{ carga.responsable or '-' }}</td><td>{{ carga.nombre_chofer or '-' }}</td><td>{{ '{:,.2f}'.format(carga.hora or 0) }}</td><td>{{ '{:,.2f}'.format(carga.horometro or 0) }}</td><td>{{ '{:,.0f}'.format(carga.kilometraje or 0) }}</td><td>{{ carga.tipo_carga or 'Media' }}</td><td>{{ carga.observacion or '-' }}</td><td><a class="btn btn-sm btn-outline-danger" href="{{ url_for('pdf_despacho', despacho_id=carga.id) }}" target="_blank"><i class="bi bi-filetype-pdf"></i></a></td></tr>{% endfor %}
+      </tbody></table></div>
+      {% else %}<div class="machine-empty">No hay cargas para esta máquina en el período seleccionado.</div>{% endif %}
+    </div>
+  </details>
+  {% else %}<div class="machine-empty">No hay máquinas registradas.</div>{% endfor %}
+</div>
+{% endblock %}

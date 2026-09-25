@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    {% set page_title = 'Sistema Integrado IGP' %}
+    {% set page_description = 'Sistema Integrado IGP para gestionar inventario, compras, calidad, despacho y operaciones de la empresa.' %}
+    {% if request.path.startswith('/modulo/compras') %}{% set page_title = 'Compras | Sistema Integrado IGP' %}{% set page_description = 'Gestión de proveedores, solicitudes, presupuestos y órdenes de compra.' %}
+    {% elif request.path.startswith('/inventario') %}{% set page_title = 'Inventario | Sistema Integrado IGP' %}{% set page_description = 'Consulta y gestión de insumos, existencias, movimientos y pedidos de inventario.' %}
+    {% elif request.path.startswith('/calidad') or request.path.startswith('/control-calidad') %}{% set page_title = 'Control de calidad | Sistema Integrado IGP' %}{% set page_description = 'Registro y seguimiento de controles, certificaciones y resultados de calidad.' %}
+    {% elif request.path.startswith('/admin/despacho') or request.path.startswith('/despacho') %}{% set page_title = 'Despacho | Sistema Integrado IGP' %}{% set page_description = 'Gestión de despachos, cargas, clientes y trazabilidad de productos.' %}
+    {% elif request.path.startswith('/reportes') %}{% set page_title = 'Reportes | Sistema Integrado IGP' %}{% set page_description = 'Consulta de reportes operativos y análisis del Sistema Integrado IGP.' %}{% endif %}
+    <title>{{ page_title }}</title>
+    <meta name="description" content="{{ page_description }}" />
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      :root {
+        --bg-main: #060f18;
+        --bg-soft: #0d1b2a;
+        --panel: rgba(18, 28, 36, 0.8);
+        --panel-alt: rgba(32, 42, 51, 0.88);
+        --line-soft: rgba(255, 255, 255, 0.08);
+        --text-soft: rgba(220, 232, 245, 0.72);
+        --text-main: #edf4ff;
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body {
+        margin: 0;
+        min-height: 100%;
+        background: var(--bg-main);
+        color: var(--text-main);
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      body {
+        background:
+          radial-gradient(circle at top, rgba(30, 72, 114, 0.28), transparent 25%),
+          linear-gradient(180deg, #08151f 0%, #050d16 100%);
+      }
+
+      .dashboard-shell {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 16px 32px;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        background: linear-gradient(90deg, #0d54d7 0%, #0d5fe3 100%);
+        padding: 1rem 1.2rem;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        color: #fff;
+        font-weight: 700;
+      }
+
+      .brand-mark {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 24px;
+        border-radius: 7px;
+        background: rgba(255,255,255,0.12);
+        font-size: 0.7rem;
+        font-weight: 800;
+      }
+
+      .brand-name {
+        font-size: clamp(1.2rem, 2vw, 1.8rem);
+      }
+
+      .header-menu {
+        border: 0;
+        background: transparent;
+        color: rgba(255,255,255,0.9);
+        width: 36px;
+        height: 36px;
+        padding: 0;
+      }
+
+      .header-menu span {
+        width: 18px;
+        height: 2px;
+        display: block;
+        background: currentColor;
+        position: relative;
+        margin: 0 auto;
+      }
+
+      .header-menu span::before,
+      .header-menu span::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        width: 18px;
+        height: 2px;
+        background: currentColor;
+      }
+
+      .header-menu span::before { top: -6px; }
+      .header-menu span::after { top: 6px; }
+
+      .logout-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.55rem 0.8rem;
+        border: 1px solid rgba(255,255,255,0.28);
+        border-radius: 8px;
+        color: #fff;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 600;
+        background: rgba(0,0,0,0.12);
+      }
+
+      .logout-link:hover { color: #fff; background: rgba(0,0,0,0.24); }
+
+      .dashboard-content {
+        padding-top: 1.2rem;
+      }
+
+      .panel-card {
+        background: rgba(18, 28, 36, 0.72);
+        border: 1px solid var(--line-soft);
+        border-radius: 16px;
+        padding: 1rem 1.2rem 1.1rem;
+      }
+
+      .panel-label {
+        display: block;
+        margin-bottom: 0.45rem;
+        color: rgba(178, 193, 213, 0.9);
+        font-size: 0.72rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      .panel-title-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+
+      .panel-title-row h1 {
+        margin: 0;
+        color: var(--text-main);
+        font-size: clamp(2.1rem, 3vw, 3rem);
+        font-weight: 700;
+        letter-spacing: -0.04em;
+      }
+
+      .secure-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.42rem 0.8rem;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.08);
+        color: rgba(205, 220, 240, 0.9);
+        font-size: 0.8rem;
+      }
+
+      .secure-pill::before {
+        content: "◌";
+        font-size: 0.8rem;
+      }
+
+      .panel-card p {
+        margin: 0.8rem 0 0;
+        color: var(--text-soft);
+        font-size: 1.08rem;
+        line-height: 1.5;
+      }
+
+      .cards-grid {
+        margin-top: 1.4rem;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+      }
+
+      .menu-card {
+        background: linear-gradient(180deg, rgba(54, 62, 70, 0.8), rgba(36, 46, 54, 0.95));
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 16px;
+        padding: 1.2rem 1rem 1rem;
+        min-height: 170px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+
+      .menu-card .icon-wrap {
+        width: 58px;
+        height: 58px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0.9rem;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+      }
+
+      .menu-card svg {
+        width: 28px;
+        height: 28px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 2.1;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .menu-card h2 {
+        margin: 0;
+        font-size: 1.05rem;
+        line-height: 1.2;
+        font-weight: 700;
+      }
+
+      .menu-card p {
+        margin: 0.45rem 0 0;
+        color: rgba(205, 219, 236, 0.78);
+        font-size: 0.92rem;
+        line-height: 1.4;
+      }
+
+      .color-blue { background: linear-gradient(135deg, #5aa6ff, #1c6ef2); color: #edf5ff; }
+      .color-yellow { background: linear-gradient(135deg, #f9d76d, #f0b230); color: #fff8ea; }
+      .color-red { background: linear-gradient(135deg, #ff7d7d, #f35959); color: #fff4f4; }
+      .color-green { background: linear-gradient(135deg, #52d8aa, #2bb279); color: #f0fff7; }
+      .color-orange { background: linear-gradient(135deg, #ffb15f, #f49b3a); color: #fffaf4; }
+      .color-teal { background: linear-gradient(135deg, #5fe3d2, #29c5b6); color: #f0fffd; }
+
+      @media (max-width: 720px) {
+        .cards-grid {
+          grid-template-columns: 1fr;
+        }
+        .panel-title-row {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+
+      html, body {
+        background: #f4f7fb;
+        color: #1f2937;
+      }
+
+      body {
+        background: linear-gradient(180deg, #ffffff 0%, #f4f7fb 100%);
+      }
+
+      .panel-card, .menu-card {
+        background: #ffffff;
+        color: #1f2937;
+        border-color: #dbe3ee;
+        box-shadow: 0 6px 18px rgba(31, 41, 55, .08);
+      }
+
+      .panel-title-row h1, .menu-card h2 { color: #172033; }
+      .panel-label, .panel-card p, .menu-card p { color: #64748b; }
+      .secure-pill { background: #eef4fb; border-color: #cbd8e8; color: #40516a; }
+
+      .back-button {
+        display: inline-flex;
+        align-items: center;
+        margin-left: auto;
+        padding: .45rem .75rem;
+        border: 1px solid rgba(255,255,255,.45);
+        border-radius: 6px;
+        color: #fff;
+        text-decoration: none;
+        font-size: .9rem;
+      }
+
+      .back-button:hover { color: #fff; background: rgba(255,255,255,.14); }
+    </style>
+  </head>
+  <body>
+    <div class="dashboard-shell">
+      {% block body %}
+      {% if request.endpoint not in ('admin_dashboard', 'rrhh', 'quality_dashboard', 'reportes', 'inventario', 'bascula', 'horno_laminacion', 'laminacion_dashboard', 'laminacion_reporte') %}<header class="topbar" aria-label="Cabecera del sistema">
+        <div class="brand">
+          <span class="brand-name">Sistema de Gestion Integrado IGP</span>
+        </div>
+ {% if current_user.is_authenticated %}<a class="back-button" href="{{ url_for('admin_dashboard') if current_user.is_admin else url_for('quality_dashboard') if current_user.is_calidad or current_user.is_control_calidad else url_for('rrhh') if current_user.is_rrhh else url_for('supervisor_dashboard') if current_user.is_supervisor else url_for('autorizaciones_compras') if current_user.is_autorizador_compras else url_for('modulo_compras') if current_user.is_compras else url_for('admin_dashboard') }}">Volver al panel</a>{% endif %}
+        <div class="d-flex align-items-center gap-2">
+          <div class="dropdown">
+            <button class="logout-link" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Cuenta"><i class="bi bi-person-circle"></i><span class="d-none d-md-inline">Cuenta</span></button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><span class="dropdown-item-text"><strong>{{ current_user.full_name }}</strong><br><small>@{{ current_user.username }}</small></span></li>
+            </ul>
+          </div>
+          <a class="logout-link" href="{{ url_for('logout') }}" title="Cerrar sesión"><i class="bi bi-box-arrow-right"></i><span>Cerrar sesión</span></a>
+          <button class="header-menu" type="button" aria-label="Acciones"><span></span></button>
+        </div>
+      </header>{% endif %}
+
+      <main class="dashboard-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ 'danger' if category == 'error' else category }} mt-3" role="alert">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+      </main>
+      {% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

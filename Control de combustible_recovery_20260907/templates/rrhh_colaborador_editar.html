@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-4">
+  <h1>Editar colaborador</h1>
+  <form method="post" enctype="multipart/form-data" class="row g-3">
+    <div class="col-md-4"><label class="form-label">Legajo</label><input class="form-control" name="legajo" value="{{ colaborador.legajo }}" required></div>
+    <div class="col-md-8"><label class="form-label">Nombre completo</label><input class="form-control" name="nombre" value="{{ colaborador.nombre }}" required></div>
+    <div class="col-md-4"><label class="form-label">Documento</label><input class="form-control" name="documento" value="{{ colaborador.documento }}"></div>
+    <div class="col-md-4"><label class="form-label">Área</label><input class="form-control" name="area" value="{{ colaborador.area }}"></div>
+    <div class="col-md-4"><label class="form-label">Cargo</label><input class="form-control" name="cargo" value="{{ colaborador.cargo }}"></div>
+    <div class="col-md-4"><label class="form-label">Puesto</label><input class="form-control" name="puesto" value="{{ colaborador.puesto }}"></div>
+    <div class="col-md-4"><label class="form-label">Teléfono</label><input class="form-control" name="telefono" value="{{ colaborador.telefono }}"></div>
+    <div class="col-md-4"><label class="form-label">Correo</label><input class="form-control" name="correo" value="{{ colaborador.correo }}"></div>
+    <div class="col-md-4"><label class="form-label">Fecha de ingreso</label><input class="form-control" type="date" name="fecha_ingreso" value="{{ colaborador.fecha_ingreso.isoformat() if colaborador.fecha_ingreso else '' }}"></div>
+    <div class="col-md-4"><label class="form-label">Foto</label><input class="form-control" type="file" name="foto" accept="image/*"></div>
+    <div class="col-12"><button class="btn btn-primary" type="submit">Guardar cambios</button><a class="btn btn-outline-secondary ms-2" href="/rrhh/colaboradores/padron">Cancelar</a></div>
+  </form>
+</div>
+{% endblock %}

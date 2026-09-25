@@ -1,0 +1,26 @@
+# Local runtime data and generated output
+**/instance/
+**/logs/
+**/Reports/
+**/BACKUP_*/
+/BACKUP_*/
+
+# Databases, backups, and deployment credentials
+*.db
+*.db-*
+*.bak
+*.key
+*.crt
+**/instance/app_secret_key
+*.zip
+*.pdf
+*.log
+/cleanup_rrhh_log.txt
+
+# Python-generated files
+__pycache__/
+*.py[cod]
+
+# Local environments
+.venv/
+venv/

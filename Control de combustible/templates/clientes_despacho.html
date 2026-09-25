@@ -1,0 +1,8 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4"><div><div class="small text-uppercase text-primary fw-semibold">Despacho de Varillas</div><h1 class="mb-1">Clientes</h1><p class="text-muted mb-0">Registre clientes y sus datos habituales de retiro.</p></div><a class="btn btn-outline-secondary" href="{{ url_for('panel_despacho_acero') }}"><i class="bi bi-arrow-left me-2"></i>Volver a Despacho</a></div>
+  <div class="quality-form-card p-4 mb-4"><h5>Nuevo cliente</h5><form method="post" class="row g-3"><div class="col-md-5"><label class="form-label">Cliente o empresa</label><input class="form-control" name="nombre" required></div><div class="col-md-5"><label class="form-label">Destino habitual</label><input class="form-control" name="destino"></div><div class="col-md-2 d-flex align-items-end"><button class="btn btn-primary w-100" type="submit"><i class="bi bi-save me-2"></i>Guardar</button></div></form></div>
+  <div class="quality-form-card p-4"><h5>Clientes registrados</h5><div class="table-responsive"><table class="table align-middle"><thead><tr><th>Código</th><th>Cliente</th><th>Destino</th><th>Último chofer</th><th>Chapa</th></tr></thead><tbody>{% for cliente in clientes %}<tr><td>CLI-{{ cliente.id }}</td><td>{{ cliente.nombre }}</td><td>{{ cliente.ultimo_destino or '-' }}</td><td>{{ cliente.ultimo_chofer or '-' }}</td><td>{{ cliente.ultima_chapa or '-' }}</td></tr>{% else %}<tr><td colspan="5" class="text-center text-muted">No hay clientes registrados.</td></tr>{% endfor %}</tbody></table></div></div>
+</div>
+{% endblock %}

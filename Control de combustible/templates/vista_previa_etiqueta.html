@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4"><div><div class="small text-uppercase text-primary fw-semibold">Etiqueta ETQ-{{ '%07d'|format(etiqueta.id) }}</div><h1 class="mb-1">Vista previa de etiqueta</h1><p class="text-muted mb-0">{{ etiqueta.tipo_producto }} · Colada {{ etiqueta.colada }}</p></div><div class="d-flex gap-2"><a class="btn btn-primary" href="{{ url_for('descargar_etiqueta_qality', etiqueta_id=etiqueta.id, preview=1, v=preview_version) }}" target="_blank"><i class="bi bi-file-earmark-pdf me-2"></i>Ver PDF</a><a class="btn btn-outline-secondary" href="{{ url_for('consultar_etiquetas_qality') }}"><i class="bi bi-arrow-left me-2"></i>Volver</a></div></div>
+  <div class="row g-4">
+    <div class="col-lg-5"><div class="card border-0 shadow-sm"><div class="card-body"><h2 class="h5">Datos de la etiqueta</h2><dl class="row mb-0"><dt class="col-5">Producto</dt><dd class="col-7">{{ etiqueta.tipo_producto }}</dd><dt class="col-5">Calidad</dt><dd class="col-7">{{ etiqueta.calidad }}</dd><dt class="col-5">Colada</dt><dd class="col-7">{{ etiqueta.colada }}</dd><dt class="col-5">Longitud</dt><dd class="col-7">{{ etiqueta.longitud or '-' }}</dd><dt class="col-5">Peso</dt><dd class="col-7">{{ etiqueta.peso or '-' }} kg</dd><dt class="col-5">Estado</dt><dd class="col-7">{{ 'No conforme' if etiqueta.no_conforme else 'Tipo B' if etiqueta.tipo_b else 'Aprobada' if etiqueta.aprobado else 'Conforme' }}</dd></dl></div></div></div>
+    <div class="col-lg-7"><div class="ratio ratio-4x3 border rounded bg-light overflow-hidden"><iframe src="{{ url_for('descargar_etiqueta_qality', etiqueta_id=etiqueta.id, preview=1, v=preview_version) }}" title="PDF de etiqueta"></iframe></div></div>
+  </div>
+</div>
+{% endblock %}

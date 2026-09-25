@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+{% block content %}
+<style>
+  .users-page { max-width: 1180px; margin: 0 auto; }
+  .users-heading { padding: 1.5rem 1.7rem; border: 1px solid #dbe5ef; border-radius: 16px; background: linear-gradient(120deg, #ffffff, #eef6fb); box-shadow: 0 10px 26px rgba(31,41,55,.07); }
+  .users-heading h1 { margin: 0; color: #163b5b; font-weight: 750; letter-spacing: -.02em; }
+  .users-heading p { margin: .45rem 0 0; color: #64748b; }
+  .users-layout { display: grid; grid-template-columns: minmax(280px, 360px) 1fr; gap: 1.25rem; margin-top: 1.25rem; }
+  .users-panel { padding: 1.25rem; border: 1px solid #dbe5ef; border-radius: 14px; background: #fff; box-shadow: 0 8px 22px rgba(31,41,55,.06); }
+  .users-panel h2 { margin-top: 0; color: #19324a; font-weight: 750; }
+  .users-panel .form-label { color: #52657d; font-size: .86rem; font-weight: 650; }
+  .users-panel .form-control, .users-panel .form-select { border-color: #cbd8e5; }
+  .users-panel .form-control:focus, .users-panel .form-select:focus { border-color: #4794c4; box-shadow: 0 0 0 .2rem rgba(71,148,196,.15); }
+  .role-group { margin-bottom: 1rem; overflow: hidden; border: 1px solid #e1e8ef; border-radius: 12px; background: #fff; }
+  .role-title { display: flex; align-items: center; justify-content: space-between; padding: .72rem .85rem; border-bottom: 1px solid #e7edf3; color: #31506a; background: #f7fafc; }
+  .role-title-main { display: flex; align-items: center; gap: .55rem; }
+  .role-title-main i { color: var(--role-color, #31709a); font-size: 1.05rem; }
+  .role-level { color: #8090a1; font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+  .role-count { min-width: 1.65rem; padding: .18rem .4rem; border-radius: 999px; background: #e8f1f8; color: #25618a; font-size: .75rem; font-weight: 750; text-align: center; }
+  .role-group .list-group { margin: 0 !important; }
+  .user-row { gap: .75rem; padding: .65rem .75rem; border: 0 !important; border-left: 4px solid var(--user-color, #31709a) !important; color: #243b53 !important; background: #fff !important; }
+  .user-row + .user-row { border-top: 1px solid #edf1f5 !important; }
+  .user-row:hover { background: #f8fbfd !important; }
+  .user-identity { display: flex; align-items: center; gap: .65rem; min-width: 0; }
+  .user-avatar { display: grid; place-items: center; width: 34px; height: 34px; flex: 0 0 34px; border-radius: 50%; background: var(--user-color, #31709a); color: #fff; font-size: .9rem; }
+  .user-name { font-weight: 650; }
+  .user-name small { display: block; margin-top: .1rem; color: #7b8b9d !important; font-weight: 400; }
+  .user-role { color: #6b7c8f; font-size: .78rem; }
+  .users-submit { background: #1d6f9f; border-color: #1d6f9f; }
+  .users-submit:hover { background: #155879; border-color: #155879; }
+  .role-admin { --role-color: #a45d15; } .role-rrhh { --role-color: #a24373; } .role-compras { --role-color: #247c63; } .role-autorizador_compras { --role-color: #c27b20; } .role-gerencia { --role-color: #6750a4; } .role-supervisor { --role-color: #286a9f; } .role-control_calidad, .role-calidad { --role-color: #168179; } .role-deposito { --role-color: #986b1a; } .role-despacho { --role-color: #b24b3c; }
+  .user-tone-0 { --user-color: #286a9f; } .user-tone-1 { --user-color: #168179; } .user-tone-2 { --user-color: #a45d15; } .user-tone-3 { --user-color: #a24373; } .user-tone-4 { --user-color: #6750a4; } .user-tone-5 { --user-color: #b24b3c; }
+  .role-group:last-child { margin-bottom: 0; }
+  @media (max-width: 850px) { .users-layout { grid-template-columns: 1fr; } }
+</style>
+<div class="container-fluid py-3 users-page">
+  <div class="users-heading"><div class="small text-uppercase text-primary fw-semibold">Administración del sistema</div><h1>Usuarios</h1><p>Cree cuentas y asigne el nivel de acceso de cada usuario.</p></div>
+  <div class="users-layout">
+    <section class="users-panel">
+      <h2 class="h5">Crear usuario</h2>
+      <form method="post">
+        <label class="form-label" for="username">Usuario</label><input class="form-control mb-3" id="username" name="username" required>
+        <label class="form-label" for="full_name">Nombre completo</label><input class="form-control mb-3" id="full_name" name="full_name" required>
+        <label class="form-label" for="colaborador_id">Vincular con colaborador / legajo</label><select class="form-select mb-3" id="colaborador_id" name="colaborador_id"><option value="">Sin vincular</option>{% for colaborador in colaboradores %}<option value="{{ colaborador.id }}">{{ colaborador.nombre }} · Legajo {{ colaborador.legajo or '-' }}</option>{% endfor %}</select>
+        <label class="form-label" for="password">Contraseña</label><input class="form-control mb-3" id="password" name="password" type="password" minlength="6" required>
+        <label class="form-label" for="role">Nivel de acceso</label><select class="form-select mb-3" id="role" name="role" required>{% for role, label in [('admin','Administrador'),('rrhh','RRHH'),('compras','Compras'),('autorizador_compras','Autorizador de compras'),('gerencia','Gerencia'),('supervisor','Supervisor'),('control_calidad','Control de Calidad'),('operador_horno','Operador de carga de horno'),('operador_despunte','Operador de despunte'),('deposito','Depósito'),('despacho','Despacho'),('calidad','Calidad')] %}<option value="{{ role }}">{{ label }}</option>{% endfor %}</select>
+        <label class="form-label" for="correo">Correo</label><input class="form-control mb-3" id="correo" name="correo" type="email">
+        <label class="form-label" for="telefono">Teléfono</label><input class="form-control mb-3" id="telefono" name="telefono">
+        <button class="btn users-submit w-100" type="submit"><i class="bi bi-person-plus me-2"></i>Crear usuario</button>
+      </form>
+    </section>
+    <section class="users-panel">
+      <h2 class="h5">Usuarios registrados</h2>
+      {% for grupo in grupos_usuarios %}<div class="role-group role-{{ grupo.role }}"><div class="role-title"><span class="role-title-main"><i class="bi bi-shield-check"></i><span><strong>{{ grupo.label }}</strong><span class="role-level d-block">Nivel de acceso</span></span></span><span class="role-count">{{ grupo.users|length }}</span></div><div class="list-group">{% for usuario in grupo.users %}<div class="list-group-item user-row user-tone-{{ loop.index0 % 6 }} d-flex justify-content-between align-items-center"><span class="user-identity"><span class="user-avatar"><i class="bi bi-person"></i></span><span class="user-name">{{ usuario.full_name }}<small>@{{ usuario.username }}{% if usuario.colaborador %} · Legajo {{ usuario.colaborador.legajo or '-' }}{% endif %}</small></span></span><span class="d-flex align-items-center gap-2"><span class="user-role d-none d-lg-inline">{{ grupo.label }}</span><a class="btn btn-sm btn-outline-primary" href="{{ url_for('editar_usuario', user_id=usuario.id) }}" title="Editar usuario"><i class="bi bi-pencil-square"></i><span class="d-none d-md-inline ms-1">Editar</span></a><form method="post" action="{{ url_for('eliminar_usuario', user_id=usuario.id) }}"><button class="btn btn-sm btn-outline-danger" type="submit" {% if usuario.id == current_user.id %}disabled{% endif %} title="Eliminar usuario"><i class="bi bi-trash3"></i><span class="d-none d-md-inline ms-1">Eliminar</span></button></form></span></div>{% endfor %}</div></div>{% else %}<p class="text-muted">No hay usuarios registrados.</p>{% endfor %}
+    </section>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="row g-4 mt-1">
+  <div class="col-lg-4">
+    <div class="dashboard-card">
+      <h4 class="mb-3">Nueva compra</h4>
+      <form method="post">
+        <div class="mb-3">
+          <label class="form-label"><strong>Litros comprados</strong></label>
+          <input type="number" class="form-control" name="litros" min="1" step="0.01" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label"><strong>Precio por litro (Gs)</strong></label>
+          <input type="number" class="form-control" name="precio_litro" min="0" step="0.01" placeholder="Ej: 8690" required>
+        </div>
+        <div class="mb-3" style="background-color: #f0f8ff; padding: 12px; border-radius: 5px; border-left: 4px solid #0066cc;">
+          <p style="margin: 0; font-size: 0.9rem; color: #333;">
+            <strong>Costo total:</strong> Se calcula automaticamente (Litros x Precio/L)
+          </p>
+        </div>
+        <hr style="margin: 20px 0;">
+        <div class="mb-3">
+          <label class="form-label"><strong>Proveedor</strong></label>
+          <input type="text" class="form-control" name="proveedor" placeholder="Ej: Petro Energy" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Fecha</label>
+          <input type="date" class="form-control" name="fecha">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Notas</label>
+          <textarea class="form-control" name="notas" rows="3" placeholder="Observaciones sobre la compra"></textarea>
+        </div>
+        <button class="btn btn-success w-100" type="submit" style="font-size: 1rem; padding: 10px;">Registrar compra</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="dashboard-card">
+      <h4 class="mb-3">Historial de compras</h4>
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr><th>Fecha</th><th>Litros</th><th>Precio/L</th><th>Costo total</th><th>Proveedor</th><th>Notas</th><th>Acción</th></tr>
+        </thead>
+        <tbody>
+          {% for compra in compras %}
+          <tr>
+            <td>{{ compra.fecha.strftime('%d/%m/%Y') if compra.fecha else 'Sin fecha' }}</td>
+            <td>{{ '%.0f'|format(compra.litros or 0) }} L</td>
+            <td>{{ '%.0f'|format(compra.precio_litro or 0) }} Gs</td>
+            <td>{{ '%.0f'|format(compra.costo_total or 0) }} Gs</td>
+            <td>{{ compra.proveedor }}</td>
+            <td>{{ compra.notas or '-' }}</td>
+            <td><a class="btn btn-sm btn-outline-primary" href="{{ url_for('editar_compra', compra_id=compra.id) }}">Editar</a></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" class="text-center text-muted">No hay compras registradas</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

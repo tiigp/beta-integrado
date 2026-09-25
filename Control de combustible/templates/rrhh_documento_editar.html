@@ -1,0 +1,150 @@
+{% extends "layout.html" %}
+{% block content %}
+<style>
+  .sheet-editor { border: 1px solid #cbd8e2; border-radius: 12px; background: #f7fafc; overflow: hidden; }
+  .sheet-toolbar { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .7rem .85rem; border-bottom: 1px solid #dbe5ec; background: #eef4f7; }
+  .sheet-toolbar-title { color: #173d52; font-weight: 700; }
+  .sheet-toolbar-meta { color: #71838d; font-size: .8rem; }
+  .sheet-scroll { max-height: 76vh; overflow: auto; }
+  .sheet-table { min-width: 1280px; width: 100%; margin: 0; border-collapse: separate; border-spacing: 0; }
+  .sheet-table th, .sheet-table td { min-width: 170px; padding: 0; border-right: 1px solid #dbe5ec; border-bottom: 1px solid #dbe5ec; background: #fff; }
+  .sheet-table thead th { position: sticky; top: 0; z-index: 2; height: 38px; min-width: 170px; padding: .35rem .5rem; background: #e8f0f4; color: #536a77; font-size: .8rem; font-weight: 700; text-align: center; }
+  .sheet-table .sheet-corner, .sheet-table .sheet-row-number { min-width: 48px; width: 48px; background: #e8f0f4; color: #71838d; text-align: center; }
+  .sheet-table .sheet-corner { position: sticky; left: 0; z-index: 4; }
+  .sheet-table .sheet-row-number { position: sticky; left: 0; z-index: 1; padding: .35rem; font-size: .75rem; }
+  .sheet-table thead .sheet-row-number { z-index: 3; }
+  .sheet-table input { min-width: 170px; height: 38px; padding: .35rem .6rem; border: 0; border-radius: 0; color: #243b53; background: transparent; font-size: .95rem; }
+  .sheet-table input:focus { position: relative; z-index: 2; outline: 2px solid #168aad; outline-offset: -2px; background: #f0fbfc; box-shadow: none; }
+  .sheet-table tr:nth-child(even) td:not(.sheet-row-number) { background: #fcfdfe; }
+  .sheet-help { color: #6f818d; font-size: .8rem; }
+  .office-editor { border: 1px solid #cbd8e2; border-radius: 12px; overflow: hidden; background: #eef2f5; }
+  .office-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem; padding: .55rem .7rem; border-bottom: 1px solid #d3dde4; background: #fff; }
+  .office-toolbar .btn { min-width: 34px; }
+  .office-document { min-height: 58vh; max-height: 70vh; overflow: auto; padding: 2.2rem; background: #dfe5e9; }
+  .office-page { width: min(100%, 820px); min-height: 880px; margin: 0 auto; padding: 2.6rem 3rem; outline: 0; background: #fff; color: #172033; box-shadow: 0 4px 18px #26323822; font-family: Calibri, Arial, sans-serif; font-size: 11pt; line-height: 1.5; white-space: pre-wrap; }
+  .office-page:focus { box-shadow: 0 0 0 2px #168aad, 0 4px 18px #26323822; }
+  .formula-bar { display: flex; gap: .5rem; align-items: center; padding: .55rem .7rem; border-bottom: 1px solid #dbe5ec; background: #fff; }
+  .formula-bar strong { color: #71838d; min-width: 42px; text-align: center; }
+  .formula-bar input { flex: 1; }
+  .sheet-table input.selected-cell { outline: 2px solid #168aad; outline-offset: -2px; background: #f0fbfc; }
+  .jss_container { width: 100%; min-height: 68vh; }
+  .jss_container .jexcel { font-size: .95rem; }
+</style>
+{% if tipo_editor == 'xlsx' %}<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsuites@5.0.2/dist/jsuites.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jspreadsheet-ce@5.0.4/dist/jspreadsheet.css"><script src="https://cdn.jsdelivr.net/npm/jsuites@5.0.2/dist/jsuites.js"></script><script src="https://cdn.jsdelivr.net/npm/jspreadsheet-ce@5.0.4/dist/index.js"></script>{% endif %}
+<div class="container-fluid py-4" style="max-width:1600px">
+  <div class="d-flex justify-content-between align-items-center mb-4"><div><div class="text-uppercase small fw-semibold text-warning">Editor de documentos</div><h1 class="mb-1">{{ documento.nombre }}</h1><p class="text-muted mb-0">Modifique el contenido, nombre o carpeta.</p></div><a class="btn btn-outline-secondary" href="{{ url_for('rrhh_documentos') }}"><i class="bi bi-arrow-left me-1"></i>Volver a documentos</a></div>
+  <form method="post"><div class="card border-0 shadow-sm"><div class="card-body"><div class="row g-3 mb-3"><div class="col-md-7"><label class="form-label">Nombre del documento</label><input class="form-control" name="nombre" value="{{ documento.nombre }}" required></div><div class="col-md-5"><label class="form-label">Carpeta</label><select class="form-select" name="carpeta_id"><option value="">Sin carpeta</option>{% for carpeta in carpetas %}<option value="{{ carpeta.id }}" {{ 'selected' if documento.carpeta_id == carpeta.id else '' }}>{{ carpeta.nombre }}</option>{% endfor %}</select></div></div>{% if tipo_editor == 'xlsx' %}<div class="sheet-editor"><div class="sheet-toolbar"><span class="sheet-toolbar-title"><i class="bi bi-grid-3x3-gap me-1"></i>{{ hoja }}</span><span class="sheet-toolbar-meta">Edición directa de celdas</span></div><div class="sheet-scroll"><table class="sheet-table"><thead><tr><th class="sheet-corner">#</th>{% for value in rows[0] %}<th>{{ loop.index }}</th>{% endfor %}</tr></thead><tbody>{% for row in rows %}{% set row_index = loop.index %}<tr><th class="sheet-row-number">{{ row_index }}</th>{% for value in row %}{% set column_index = loop.index %}<td><input name="cell_{{ row_index }}_{{ column_index }}" value="{{ value }}" aria-label="Fila {{ row_index }}, columna {{ column_index }}"></td>{% endfor %}</tr>{% endfor %}</tbody></table></div></div><div class="sheet-help mt-2">Mostrando {{ filas_mostradas }} de {{ filas_totales }} filas y {{ columnas_mostradas }} de {{ columnas_totales }} columnas. Use Tab o las flechas para moverse entre celdas.{% if formato_origen == 'xls' %} Al guardar, el archivo se convertirá a XLSX para permitir la edición en línea; el XLS original se conserva.{% endif %}</div>{% else %}<textarea class="form-control" name="contenido" rows="24" spellcheck="false">{{ contenido }}</textarea>{% endif %}</div><div class="card-footer bg-white d-flex justify-content-end gap-2"><a class="btn btn-outline-secondary" href="{{ url_for('rrhh_documentos') }}">Cancelar</a><a class="btn btn-outline-primary" href="{{ url_for('descargar_documento_rrhh', documento_id=documento.id) }}" target="_blank" rel="noopener"><i class="bi bi-download me-1"></i>Descargar</a><button class="btn btn-primary" type="submit"><i class="bi bi-save me-1"></i>Guardar cambios</button></div></div></form>
+</div>
+<script>
+  (() => {
+    const form = document.querySelector('form[method="post"]');
+    const textArea = form?.querySelector('textarea[name="contenido"]');
+    const sheet = form?.querySelector('.sheet-table');
+    if (!form) return;
+
+    if (textArea) {
+      const toolbar = document.createElement('div');
+      toolbar.className = 'office-toolbar';
+      toolbar.innerHTML = '<button type="button" class="btn btn-sm btn-outline-secondary" data-command="bold"><b>B</b></button><button type="button" class="btn btn-sm btn-outline-secondary" data-command="italic"><i>I</i></button><button type="button" class="btn btn-sm btn-outline-secondary" data-command="underline"><u>U</u></button><button type="button" class="btn btn-sm btn-outline-secondary" data-command="insertUnorderedList"><i class="bi bi-list-ul"></i></button><button type="button" class="btn btn-sm btn-outline-secondary" data-command="justifyLeft"><i class="bi bi-text-left"></i></button><button type="button" class="btn btn-sm btn-outline-secondary" data-command="justifyCenter"><i class="bi bi-text-center"></i></button><button type="button" class="btn btn-sm btn-outline-secondary" data-command="justifyRight"><i class="bi bi-text-right"></i></button><span class="text-muted small ms-2">Documento</span>';
+      const editor = document.createElement('div');
+      editor.className = 'office-editor';
+      editor.innerHTML = '<div class="office-document"><div class="office-page" contenteditable="true" spellcheck="true"></div></div>';
+      const page = editor.querySelector('.office-page');
+      page.textContent = textArea.value;
+      textArea.hidden = true;
+      const richContent = document.createElement('input');
+      richContent.type = 'hidden';
+      richContent.name = 'contenido_html';
+      form.appendChild(richContent);
+      textArea.parentNode.insertBefore(toolbar, textArea);
+      textArea.parentNode.insertBefore(editor, textArea);
+      toolbar.querySelectorAll('[data-command]').forEach((button) => button.addEventListener('mousedown', (event) => {
+        event.preventDefault();
+        page.focus();
+        document.execCommand(button.dataset.command, false);
+      }));
+      form.addEventListener('submit', () => {
+        textArea.value = page.innerText.replace(/\u00a0/g, ' ');
+        richContent.value = page.innerHTML;
+      });
+    }
+
+    if (sheet) {
+      if (typeof window.jspreadsheet !== 'function') return;
+      const legacyData = [...sheet.querySelectorAll('tbody tr')].map((row) => [...row.querySelectorAll('input')].map((input) => input.value));
+      const spreadsheetHost = document.createElement('div');
+      spreadsheetHost.className = 'jss_container';
+      sheet.closest('.sheet-editor').querySelector('.sheet-scroll').hidden = true;
+      sheet.closest('.sheet-editor').querySelector('.sheet-toolbar-meta').textContent = 'Jspreadsheet';
+      sheet.closest('.sheet-editor').appendChild(spreadsheetHost);
+      const spreadsheetData = document.createElement('input');
+      spreadsheetData.type = 'hidden';
+      spreadsheetData.name = 'spreadsheet_data';
+      form.appendChild(spreadsheetData);
+      let spreadsheet;
+      try {
+        spreadsheet = window.jspreadsheet(spreadsheetHost, {
+          tabs: false,
+          toolbar: [],
+          worksheets: [{
+            worksheetName: '{{ hoja|e }}',
+            data: legacyData.length ? legacyData : [['']],
+            minDimensions: [Math.max(legacyData[0]?.length || 1, 10), Math.max(legacyData.length || 1, 30)],
+            tableOverflow: true,
+            tableHeight: '68vh',
+            allowInsertRow: true,
+            allowInsertColumn: true,
+            allowDeleteRow: true,
+            allowDeleteColumn: true,
+          }],
+        });
+      } catch (error) {
+        console.error('No se pudo iniciar Jspreadsheet', error);
+        spreadsheetHost.remove();
+        sheet.closest('.sheet-editor').querySelector('.sheet-scroll').hidden = false;
+        return;
+      }
+      if (!spreadsheetHost.querySelector('.jss_worksheet, .jexcel, table')) {
+        spreadsheetHost.remove();
+        sheet.closest('.sheet-editor').querySelector('.sheet-scroll').hidden = false;
+        return;
+      }
+      form.addEventListener('submit', () => {
+        const worksheet = spreadsheet.worksheets?.[0] || spreadsheet;
+        spreadsheetData.value = JSON.stringify(worksheet.getData ? worksheet.getData() : spreadsheet.getData());
+      });
+      return;
+    }
+
+    if (sheet) {
+      const scroll = sheet.closest('.sheet-scroll');
+      const toolbar = document.createElement('div');
+      toolbar.className = 'office-toolbar';
+      toolbar.innerHTML = '<button type="button" class="btn btn-sm btn-outline-secondary" data-sheet-action="row">+ Fila</button><button type="button" class="btn btn-sm btn-outline-secondary" data-sheet-action="column">+ Columna</button><span class="text-muted small ms-2">Hoja de cálculo</span>';
+      const formula = document.createElement('div');
+      formula.className = 'formula-bar';
+      formula.innerHTML = '<strong id="cell-name">A1</strong><input class="form-control form-control-sm" id="cell-value" placeholder="Valor o fórmula">';
+      scroll.parentNode.insertBefore(toolbar, scroll);
+      scroll.parentNode.insertBefore(formula, scroll);
+      const cellName = formula.querySelector('#cell-name');
+      const cellValue = formula.querySelector('#cell-value');
+      let activeCell;
+      const columnName = (number) => { let name = ''; while (number) { const remainder = (number - 1) % 26; name = String.fromCharCode(65 + remainder) + name; number = Math.floor((number - 1) / 26); } return name; };
+      const activate = (input) => { if (activeCell) activeCell.classList.remove('selected-cell'); activeCell = input; input.classList.add('selected-cell'); cellName.textContent = `${columnName(input.closest('td').cellIndex)}${input.closest('tr').rowIndex}`; cellValue.value = input.value; cellValue.focus(); cellValue.select(); };
+      sheet.querySelectorAll('input').forEach((input) => input.addEventListener('focus', () => activate(input)));
+      cellValue.addEventListener('input', () => { if (activeCell) activeCell.value = cellValue.value; });
+      toolbar.querySelector('[data-sheet-action="row"]').addEventListener('click', () => {
+        const row = sheet.insertRow(-1); const rowNumber = sheet.rows.length - 1;
+        row.innerHTML = `<th class="sheet-row-number">${rowNumber}</th>${Array.from(sheet.rows[0].cells).slice(1).map((_, index) => `<td><input name="cell_${rowNumber}_${index + 1}" value="" aria-label="Fila ${rowNumber}, columna ${index + 1}"></td>`).join('')}`;
+        row.querySelectorAll('input').forEach((input) => input.addEventListener('focus', () => activate(input)));
+      });
+      toolbar.querySelector('[data-sheet-action="column"]').addEventListener('click', () => {
+        const column = sheet.rows[0].cells.length; const name = columnName(column);
+        sheet.rows[0].insertAdjacentHTML('beforeend', `<th>${name}</th>`);
+        Array.from(sheet.rows).slice(1).forEach((row, index) => row.insertAdjacentHTML('beforeend', `<td><input name="cell_${index + 1}_${column}" value="" aria-label="Fila ${index + 1}, columna ${column}"></td>`));
+        sheet.querySelectorAll(`input[name$="_${column}"]`).forEach((input) => input.addEventListener('focus', () => activate(input)));
+      });
+    }
+  })();
+</script>
+{% endblock %}

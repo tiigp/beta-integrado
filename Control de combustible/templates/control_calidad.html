@@ -1,0 +1,69 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center gap-3 mb-4 flex-wrap">
+    <div><h1 class="mb-1">Nueva etiqueta</h1><p class="text-muted mb-0">Complete los datos del producto seleccionado.</p></div>
+    <a class="btn btn-outline-secondary" href="{{ url_for('quality_dashboard') }}">Volver a Calidad</a>
+  </div>
+  <form method="post" class="row g-3" id="quality-form">
+    <div class="col-md-6"><label class="form-label" for="tipo_producto">Tipo de producto</label><select class="form-select" id="tipo_producto" name="tipo_producto" required><option value="">Seleccione</option><option value="Palanquillas">Palanquillas</option><option value="AP500S">AP500 S</option><option value="VarillasLisas">Varillas Lisas</option></select></div>
+    <div class="col-md-6 palanquilla-field"><label class="form-label" for="calidad_palanquilla">Calidad de acero</label><select class="form-select" id="calidad_palanquilla" name="calidad"><option value="">Seleccione</option><option value="AP500S">AP500 S</option><option value="Inoxidable">Inoxidable</option><option value="A36">A36</option></select></div>
+    <div class="col-md-6 other-product-field"><label class="form-label" for="calidad">Calidad</label><select class="form-select" id="calidad" name="calidad_other"><option value="">Seleccione</option><option value="AP500S">AP500 S</option><option value="A36">A36 · Varillas Lisas</option></select></div>
+
+    <div class="col-md-6"><label class="form-label" for="colada">Número de colada</label><input class="form-control" id="colada" name="colada" required></div>
+    <div class="col-md-4 palanquilla-field"><label class="form-label" for="lote">Lote</label><input class="form-control" id="lote" name="lote"></div>
+    <div class="col-md-4 palanquilla-field"><label class="form-label" for="fecha">Fecha</label><input class="form-control" id="fecha" name="fecha" type="date"></div>
+    <div class="col-md-4 palanquilla-field"><label class="form-label" for="cantidad">Cantidad</label><input class="form-control" id="cantidad" name="cantidad" type="number" min="0" step="1"></div>
+    <div class="col-md-4 palanquilla-field"><label class="form-label" for="peso">Peso (kg)</label><input class="form-control" id="peso" name="peso" type="number" min="0" step="0.001"></div>
+    <div class="col-md-4 palanquilla-field"><label class="form-label" for="longitud">Longitud</label><input class="form-control" id="longitud" name="longitud" type="number" min="0" step="0.001"></div>
+    <div class="col-md-4 palanquilla-field"><label class="form-label" for="carbono">Porcentaje de Carbono</label><input class="form-control" id="carbono" name="carbono" type="number" min="0" step="0.001"></div>
+    <div class="col-md-4 palanquilla-field"><label class="form-label" for="silicio">Porcentaje de Silicio</label><input class="form-control" id="silicio" name="silicio" type="number" min="0" step="0.001"></div>
+    <div class="col-md-4 palanquilla-field"><label class="form-label" for="manganeso">Porcentaje de Manganeso</label><input class="form-control" id="manganeso" name="manganeso" type="number" min="0" step="0.001"></div>
+    <div class="col-md-4 responsable-field palanquilla-field"><label class="form-label" for="hornero">Operador de Horno</label><select class="form-select" id="hornero" name="hornero"><option value="">Seleccione</option>{% for responsable in responsables if responsable.tipo == 'Operador de Horno' %}<option value="{{ responsable.nombre }}">{{ responsable.nombre }}</option>{% endfor %}</select></div>
+    <div class="col-md-4 responsable-field palanquilla-field"><label class="form-label" for="supervisor">Supervisor</label><select class="form-select" id="supervisor" name="supervisor"><option value="">Seleccione</option>{% for responsable in responsables if responsable.tipo == 'Supervisor' %}<option value="{{ responsable.nombre }}">{{ responsable.nombre }}</option>{% endfor %}</select></div>
+    <div class="col-md-4 responsable-field palanquilla-field"><label class="form-label" for="operador_ccm">Operador de CCM</label><select class="form-select" id="operador_ccm" name="operador_ccm"><option value="">Seleccione</option>{% for responsable in responsables if responsable.tipo == 'Operador de CCM' %}<option value="{{ responsable.nombre }}">{{ responsable.nombre }}</option>{% endfor %}</select></div>
+    <div class="col-12 palanquilla-field"><div class="form-check"><input class="form-check-input" id="aprobado" name="aprobado" type="checkbox"><label class="form-check-label" for="aprobado">Palanquilla aprobada</label></div></div>
+
+    <div class="col-md-3 other-product-field"><label class="form-label" for="medida">Medida (mm)</label><select class="form-select" id="medida" name="medida"><option value="">Seleccione</option><option>8</option><option>10</option><option>12</option><option>16</option><option>20</option><option>25</option></select></div>
+    <div class="col-md-3 other-product-field"><label class="form-label" for="longitud_other">Longitud</label><input class="form-control" id="longitud_other" name="longitud" type="number" min="0" step="0.001"></div>
+    <div class="col-md-3 other-product-field"><label class="form-label" for="peso_other">Peso (kg)</label><input class="form-control" id="peso_other" name="peso" type="number" min="0" step="0.001"></div>
+    <div class="col-md-6 other-product-field"><span class="form-label d-block">Estado del producto</span><div class="d-flex gap-4 pt-2"><div class="form-check"><input class="form-check-input product-status" id="tipo_b" name="tipo_b" type="checkbox"><label class="form-check-label" for="tipo_b">Tipo B</label></div><div class="form-check"><input class="form-check-input product-status" id="no_conforme" name="no_conforme" type="checkbox"><label class="form-check-label" for="no_conforme">No conforme</label></div></div><div class="form-text">Si no marca ninguna opción, el producto queda Conforme.</div></div>
+    <div class="col-12"><label class="form-label" for="observaciones">Observaciones</label><textarea class="form-control" id="observaciones" name="observaciones" rows="3"></textarea></div>
+    <div class="col-12 d-flex gap-2"><button class="btn btn-success" type="submit">Guardar etiqueta</button><a class="btn btn-outline-secondary" href="{{ url_for('quality_dashboard') }}">Volver</a></div>
+  </form>
+</div>
+<script>
+  const productType = document.getElementById('tipo_producto');
+  const palanquillaFields = document.querySelectorAll('.palanquilla-field');
+  const otherFields = document.querySelectorAll('.other-product-field');
+  const palanquillaQuality = document.getElementById('calidad_palanquilla');
+  const otherQuality = document.getElementById('calidad');
+  function updateQualityForm() {
+    const isPalanquilla = productType.value === 'Palanquillas';
+    palanquillaFields.forEach((field) => {
+      field.hidden = !isPalanquilla;
+      field.querySelectorAll('input, select, textarea').forEach((control) => control.disabled = !isPalanquilla);
+    });
+    document.querySelectorAll('.responsable-field').forEach((field) => {
+      const shouldShow = isPalanquilla;
+      field.hidden = !shouldShow;
+      field.querySelectorAll('select').forEach((control) => control.disabled = !shouldShow);
+    });
+    otherFields.forEach((field) => {
+      field.hidden = isPalanquilla;
+      field.querySelectorAll('input, select, textarea').forEach((control) => control.disabled = isPalanquilla);
+    });
+    palanquillaQuality.disabled = !isPalanquilla;
+    otherQuality.disabled = isPalanquilla;
+    palanquillaQuality.name = isPalanquilla ? 'calidad' : 'calidad_palanquilla';
+    otherQuality.name = isPalanquilla ? 'calidad_other' : 'calidad';
+  }
+  productType.addEventListener('change', updateQualityForm);
+  document.querySelectorAll('.product-status').forEach((checkbox) => {
+    checkbox.addEventListener('change', () => {
+      if (checkbox.checked) document.querySelectorAll('.product-status').forEach((other) => { if (other !== checkbox) other.checked = false; });
+    });
+  });
+  updateQualityForm();
+</script>
+{% endblock %}

@@ -1,0 +1,90 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Restart Control de combustible service",
+			"type": "shell",
+			"command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File 'C:\\Users\\PC\\OneDrive\\Desktop\\BETA INTEGRADO\\Control de combustible\\run_tailscale.ps1'",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Restart service via PowerShell direct",
+			"type": "shell",
+			"command": "& 'C:\\Users\\PC\\OneDrive\\Desktop\\BETA INTEGRADO\\Control de combustible\\run_tailscale.ps1'",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Restart via PowerShell command",
+			"type": "shell",
+			"command": "PowerShell -NoProfile -ExecutionPolicy Bypass -Command \"& 'C:\\Users\\PC\\OneDrive\\Desktop\\BETA INTEGRADO\\Control de combustible\\run_tailscale.ps1'\"",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Restart Control service with explicit powershell",
+			"type": "shell",
+			"command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"C:\\Users\\PC\\OneDrive\\Desktop\\BETA INTEGRADO\\Control de combustible\\run_tailscale.ps1\"",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Restart via cmd and powershell file",
+			"type": "shell",
+			"command": "cmd /c \"powershell -NoProfile -ExecutionPolicy Bypass -File \\\"C:\\Users\\PC\\OneDrive\\Desktop\\BETA INTEGRADO\\Control de combustible\\run_tailscale.ps1\\\"\"",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Inspect BETA folders path",
+			"type": "shell",
+			"command": "cmd /c \"dir /x \\\"C:\\Users\\PC\\OneDrive\\Desktop\\BETA INTEGRADO\\\"\"",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Inspect running python processes",
+			"type": "shell",
+			"command": "cmd /c \"tasklist /FI \\\"IMAGENAME eq python.exe\\\" /FO LIST && echo --- && netstat -ano | findstr :5000\"",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Kill python processes",
+			"type": "shell",
+			"command": "cmd /c \"taskkill /F /IM python.exe\"",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Start service with proper launch script",
+			"type": "shell",
+			"command": "cmd /c \"cd /d \\\"C:\\Users\\PC\\OneDrive\\Desktop\\BETA INTEGRADO\\Control de combustible\\\" && powershell -NoProfile -ExecutionPolicy Bypass -File \\\"run_tailscale.ps1\\\"\"",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Start service with explicit semicolons",
+			"type": "shell",
+			"command": "cmd /c \"cd /d \\\"C:\\Users\\PC\\OneDrive\\Desktop\\BETA INTEGRADO\\Control de combustible\\\"; powershell -NoProfile -ExecutionPolicy Bypass -File \\\"run_tailscale.ps1\\\"\"",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Launch Flask app directly",
+			"type": "shell",
+			"command": "cmd /c \"cd /d \\\"C:\\Users\\PC\\OneDrive\\Desktop\\BETA INTEGRADO\\Control de combustible\\\"; \\\"C:\\Users\\PC\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe\\\" app.py\"",
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "Restart service reliable",
+			"type": "shell",
+			"command": "powershell.exe",
+			"args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "C:\\Users\\PC\\OneDrive\\Desktop\\BETA INTEGRADO\\Control de combustible\\run_tailscale.ps1"],
+			"isBackground": true,
+			"problemMatcher": []
+		}
+	]
+}

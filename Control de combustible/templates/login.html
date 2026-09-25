@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Acceso | IGP Metales</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { position: relative; isolation: isolate; overflow: hidden; margin: 0; min-height: 100vh; display: grid; place-items: center; font-family: Segoe UI, sans-serif; color: #f8fbff; background: #06142a; }
+    body::before { content: ""; position: fixed; z-index: -2; inset: -9%; pointer-events: none; background: url("{{ url_for('login_media', filename='photovar.webp') }}") center/cover no-repeat; animation: photoMotion 13s ease-in-out infinite alternate; }
+    body::after { content: ""; position: fixed; z-index: -1; inset: 0; pointer-events: none; background: linear-gradient(120deg, #07152bd9, #06245ccf); }
+    @keyframes photoMotion { 0% { transform: scale(1.02) translate3d(-2%, -1%, 0); } 50% { transform: scale(1.12) translate3d(1%, 1%, 0); } 100% { transform: scale(1.05) translate3d(3%, -1%, 0); } }
+    main { position: relative; z-index: 1; width: min(92vw, 410px); padding: 2.4rem; background: #07152bcc; border: 1px solid #7bdcff66; border-radius: 16px; box-shadow: 0 24px 70px #0009, inset 0 0 35px #1aa9d91a; backdrop-filter: blur(12px); }
+    img { display: block; width: 150px; max-height: 85px; object-fit: contain; margin: 0 auto 1rem; }
+    h1 { text-align: center; font-size: 1.5rem; margin: 0 0 1.5rem; letter-spacing: .08em; text-transform: uppercase; }
+    label { display: block; margin: .8rem 0 .3rem; font-weight: 600; }
+    input { width: 100%; padding: .8rem; border: 1px solid #7bdcff66; border-radius: 7px; font-size: 1rem; color: #fff; background: #00112699; }
+    button { width: 100%; margin-top: 1.25rem; padding: .85rem; border: 0; border-radius: 7px; background: #21b7e8; color: #031426; font-weight: 800; cursor: pointer; }
+    .error { padding: .65rem; background: #ff667733; color: #ffdce0; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <main>
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="IGP Metales">
+    <h1>Acceso al sistema</h1>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}<div class="error">{{ message }}</div>{% endfor %}
+    {% endwith %}
+    <form method="post">
+      <label for="username">Usuario</label>
+      <input id="username" name="username" autocomplete="username" required>
+      <label for="password">Contraseña</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required>
+      <button type="submit">Ingresar</button>
+    </form>
+  </main>
+</body>
+</html>

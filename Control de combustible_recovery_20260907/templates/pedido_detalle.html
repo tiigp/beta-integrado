@@ -1,0 +1,10 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3"><div><h2>Pedido {{ pedido.codigo or 'PED-' ~ '%06d'|format(pedido.id) }}</h2><p class="small-muted mb-0">El pedido está listo para enviarse por WhatsApp.</p></div><a class="btn btn-outline-secondary" href="{{ url_for('inventario_pedidos') }}">Volver a pedidos</a></div>
+<div class="dashboard-card">
+  <div class="row mb-4"><div class="col-md-4"><strong>Solicitado por</strong><br>{{ pedido.solicitado_por }}</div><div class="col-md-4"><strong>Fecha</strong><br>{{ pedido.fecha.strftime('%d/%m/%Y %H:%M') }}</div><div class="col-md-4"><strong>Estado</strong><br>{{ pedido.estado }}</div></div>
+  <div class="table-responsive"><table class="table"><thead><tr><th>Código</th><th>Producto</th><th>Cantidad</th><th>Unidad</th></tr></thead><tbody>{% for detalle in pedido.detalles %}<tr><td>{{ detalle.insumo.codigo }}</td><td>{{ detalle.insumo.nombre }}</td><td>{{ detalle.cantidad }}</td><td>{{ detalle.insumo.unidad }}</td></tr>{% endfor %}</tbody></table></div>
+  {% if pedido.observacion %}<p><strong>Observación:</strong> {{ pedido.observacion }}</p>{% endif %}
+  <a class="btn btn-success" href="{{ whatsapp_url }}" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i> Enviar pedido por WhatsApp</a>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container-fluid py-3">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+    <div><div class="small text-uppercase text-primary fw-semibold">Depósito / Movimientos</div><h1 class="h3 mb-1">Registrar entrada</h1><p class="text-muted mb-0">Registre producto, proveedor y fecha de ingreso al depósito.</p></div>
+    <a class="btn btn-outline-secondary" href="{{ url_for('inventario') }}"><i class="bi bi-arrow-left me-1"></i>Volver al depósito</a>
+  </div>
+  <div class="row g-4">
+    <div class="col-lg-4"><section class="card border-0 shadow-sm"><div class="card-body"><h2 class="h5 mb-3">Nueva entrada</h2><form method="post" class="row g-3">
+      <div class="col-12"><label class="form-label">Insumo</label><select class="form-select" name="insumo_id" required><option value="">Seleccione</option>{% for insumo in insumos %}<option value="{{ insumo.id }}" {% if selected_insumo_id == insumo.id %}selected{% endif %}>{{ insumo.codigo or '-' }} · {{ insumo.nombre }}</option>{% endfor %}</select></div>
+      <div class="col-12"><label class="form-label">Proveedor</label><select class="form-select" name="proveedor_id"><option value="">No informado</option>{% for proveedor in proveedores %}<option value="{{ proveedor.id }}">{{ proveedor.nombre }}</option>{% endfor %}</select></div>
+      <div class="col-12"><label class="form-label">Cantidad</label><input class="form-control" type="number" name="cantidad" min="0.01" step="0.01" required></div>
+      <div class="col-12"><label class="form-label">Fecha de ingreso</label><input class="form-control" type="text" value="Se registra al confirmar" disabled><div class="form-text">Se guarda automáticamente la fecha y hora de confirmación.</div></div>
+      <div class="col-12"><label class="form-label">Observación</label><textarea class="form-control" name="observacion" rows="3"></textarea></div>
+      <div class="col-12"><button class="btn btn-success w-100" type="submit"><i class="bi bi-box-arrow-in-down me-1"></i>Registrar entrada</button></div>
+    </form></div></section></div>
+    <div class="col-lg-8"><section class="card border-0 shadow-sm"><div class="card-body"><h2 class="h5 mb-3">Historial de entradas</h2><div class="table-responsive"><table class="table align-middle"><thead><tr><th>Fecha</th><th>Insumo</th><th>Proveedor</th><th>Cantidad</th><th>Observación</th></tr></thead><tbody>
+      {% for entrada in entradas %}<tr><td>{{ entrada.fecha.strftime('%d/%m/%Y %H:%M') }}</td><td>{{ entrada.insumo.nombre }}</td><td>{{ entrada.proveedor.nombre if entrada.proveedor else 'No informado' }}</td><td>{{ '%.2f'|format(entrada.cantidad) }} {{ entrada.insumo.unidad }}</td><td>{{ entrada.observacion or '-' }}</td></tr>{% else %}<tr><td colspan="5" class="text-center text-muted py-4">No hay entradas registradas.</td></tr>{% endfor %}
+    </tbody></table></div></div></section></div>
+  </div>
+</div>
+{% endblock %}

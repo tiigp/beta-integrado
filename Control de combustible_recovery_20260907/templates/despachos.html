@@ -1,0 +1,100 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="row g-4 mt-1">
+  <div class="col-lg-4">
+    <div class="dashboard-card">
+      <h4 class="mb-4" style="border-bottom: 2px solid #007bff; padding-bottom: 10px;">Nuevo despacho</h4>
+      <form method="post">
+        <div class="mb-3">
+          <label class="form-label" style="font-weight: bold;">Equipo</label>
+          <select class="form-select" name="equipo_id" required>
+            <option value="">Seleccione un equipo</option>
+            {% for equipo in equipos %}
+            <option value="{{ equipo.id }}">{{ equipo.nombre }} ({{ equipo.tipo }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label" style="font-weight: bold;">Litros entregados</label>
+          <input type="number" class="form-control" name="litros" min="1" step="0.01" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label" style="font-weight: bold;">Responsable</label>
+          <input type="text" class="form-control" name="responsable" required>
+        </div>
+        
+        <hr style="margin: 20px 0;">
+        <p style="font-size: 0.9rem; color: #666; font-weight: bold;">Datos operacionales:</p>
+        
+        <div class="mb-3">
+          <label class="form-label">Nombre del chofer</label>
+          <input type="text" class="form-control" name="nombre_chofer" placeholder="Ej: Juan Pérez">
+        </div>
+        <div class="row">
+          <div class="col-md-4 mb-3">
+            <label class="form-label">Hora (hs)</label>
+            <input type="number" class="form-control" name="hora" min="0" step="0.01" placeholder="Opcional: 6.5">
+          </div>
+          <div class="col-md-4 mb-3">
+            <label class="form-label">Horómetro (hs)</label>
+            <input type="number" class="form-control" name="horometro" min="0" step="0.01" placeholder="Opcional: 125.5">
+          </div>
+          <div class="col-md-4 mb-3">
+            <label class="form-label">Kilometraje (km)</label>
+            <input type="number" class="form-control" name="kilometraje" min="0" step="0.01" placeholder="Opcional: 840">
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">📦 Tipo de carga</label>
+          <select class="form-select" name="tipo_carga">
+            <option value="Baja">Baja</option>
+            <option value="Media" selected>Media</option>
+            <option value="Pesada">Pesada</option>
+          </select>
+        </div>
+        
+        <hr style="margin: 20px 0;">
+        
+        <div class="mb-3">
+          <label class="form-label">Fecha</label>
+          <input type="date" class="form-control" name="fecha">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Observación</label>
+          <textarea class="form-control" name="observacion" rows="3" placeholder="Detalles adicionales del despacho"></textarea>
+        </div>
+        <button class="btn btn-primary w-100" type="submit" style="font-size: 1.1rem; padding: 10px;">✓ Registrar despacho</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="dashboard-card">
+      <h4 class="mb-3">Historial de despachos</h4>
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr><th>Fecha</th><th>Equipo</th><th>Responsable</th><th>Litros</th><th>Acción</th></tr>
+        </thead>
+        <tbody>
+          {% for despacho in despachos %}
+          <tr>
+            <td>{{ despacho.fecha.strftime('%d/%m/%Y') if despacho.fecha else 'Sin fecha' }}</td>
+            <td>{{ despacho.equipo.nombre }}</td>
+            <td>{{ despacho.responsable }}</td>
+            <td>{{ '%.0f'|format(despacho.litros) }} L</td>
+            <td>
+              <div class="d-flex gap-2">
+                <a href="{{ url_for('detalle_despacho', despacho_id=despacho.id) }}" class="btn btn-sm btn-outline-primary">Ver</a>
+                <a href="{{ url_for('pdf_despacho', despacho_id=despacho.id) }}" class="btn btn-sm btn-outline-success" target="_blank">PDF</a>
+              </div>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" class="text-center text-muted">No hay despachos registrados</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

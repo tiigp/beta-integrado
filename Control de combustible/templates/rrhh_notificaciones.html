@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+{% block content %}
+<style>
+  .notification-page { max-width: 1120px; margin: 0 auto; color: #172033; }
+  .notification-hero { display: flex; justify-content: space-between; gap: 1rem; align-items: center; padding: 1.35rem 1.5rem; border: 1px solid #d7e3ed; border-radius: 16px; background: linear-gradient(120deg, #f5fbff, #fff 65%, #fff7ec); }
+  .notification-hero h1 { margin: 0; color: #19364f; font-size: clamp(1.55rem, 3vw, 2.2rem); }
+  .notification-hero p { margin: .4rem 0 0; color: #68788b; }
+  .notification-list { margin-top: 1rem; display: grid; gap: .75rem; }
+  .notification-item { padding: 1rem; border: 1px solid #d9e3ec; border-left: 4px solid #286a9f; border-radius: 12px; background: #fff; box-shadow: 0 6px 18px rgba(24, 54, 80, .06); }
+  .notification-item.unread { border-left-color: #bd6c1f; background: #fffaf2; }
+  .notification-item h2 { margin: 0; color: #213e58; font-size: 1rem; }
+  .notification-item p { margin: .35rem 0 0; color: #607285; }
+  .notification-meta { color: #8a98a8; font-size: .78rem; }
+  @media (max-width: 650px) { .notification-hero { display: block; } .notification-actions { margin-top: .8rem; } }
++</style>
+<div class="container py-4 notification-page">
+  <header class="notification-hero"><div><div class="text-uppercase small fw-semibold text-primary">Recursos Humanos</div><h1>Notificaciones de RRHH {% if unread_notifications %}<span class="badge rounded-pill text-bg-danger">{{ unread_notifications }}</span>{% endif %}</h1><p>Avisos de evaluaciones próximas y acciones pendientes del personal.</p></div><div class="notification-actions d-flex gap-2"><form method="post" action="{{ url_for('marcar_notificaciones_rrhh') }}"><input type="hidden" name="next" value="{{ request.path }}"><button class="btn btn-outline-secondary" type="submit"><i class="bi bi-check2-all me-1"></i>Marcar leídas</button></form><a class="btn btn-outline-secondary" href="{{ url_for('rrhh') }}"><i class="bi bi-arrow-left me-1"></i>Dashboard</a></div></header>
+  <div class="notification-list">
+    {% for notification in notifications %}
+    <article class="notification-item {{ 'unread' if not notification.leida else '' }}"><div class="d-flex justify-content-between align-items-start gap-3"><div><h2>{{ notification.titulo }}</h2><p>{{ notification.mensaje }}</p></div><span class="notification-meta">{{ notification.fecha.strftime('%d/%m/%Y %H:%M') }}</span></div><div class="d-flex flex-wrap gap-2 mt-3">{% if 'realizada' in notification.titulo|lower %}<a class="btn btn-sm btn-primary" target="_blank" rel="noopener" href="{{ notification.url }}"><i class="bi bi-file-earmark-pdf me-1"></i>Abrir documento de evaluación</a>{% else %}<a class="btn btn-sm btn-primary" target="_blank" rel="noopener" href="{{ notification.url }}"><i class="bi bi-clipboard2-check me-1"></i>Revisar evaluación</a>{% endif %}<a class="btn btn-sm btn-outline-primary" href="{{ notification_plan_urls.get(notification.id, url_for('planificador_evaluaciones_rrhh')) }}"><i class="bi bi-calendar2-plus me-1"></i>Planificar evaluación</a></div></article>
+    {% else %}<div class="notification-item"><p class="mb-0">No hay notificaciones de evaluaciones pendientes.</p></div>{% endfor %}
+  </div>
+</div>
+{% endblock %}

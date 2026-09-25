@@ -1,0 +1,168 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4"><div><div class="small text-uppercase text-primary fw-semibold">Control de Calidad</div><h1 class="mb-1">Existencias de Calidad</h1><p class="text-muted mb-0">Consulta independiente del despacho: atados de laminación y palanquillas de acería.</p></div><a class="btn btn-outline-secondary" href="{{ url_for('quality_dashboard') }}"><i class="bi bi-grid me-2"></i>Volver a Calidad</a></div>
+  <div class="quality-form-card p-4 mb-4">
+    <h2 class="h5">Laminación · Atados disponibles</h2>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Medida</th>
+            <th>Longitud</th>
+            <th>Atados</th>
+            <th>Peso registrado (kg)</th>
+            <th class="text-center">Detalle</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in varillas %}
+            <tr>
+              <td>{{ row.producto }}</td>
+              <td>{{ row.medida }} mm</td>
+              <td>{{ row.longitud }} m</td>
+              <td class="fw-semibold">{{ row.atados }}</td>
+              <td>{{ '%.2f'|format(row.peso) }}</td>
+              <td class="text-center">
+                <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#detalle-varillas-{{ loop.index }}">Detalles</button>
+              </td>
+            </tr>
+          {% else %}
+            <tr><td colspan="6" class="text-center text-muted">No hay atados disponibles.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="quality-form-card p-4">
+    <h2 class="h5">Acería · Palanquillas</h2>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th>Calidad</th>
+            <th>Longitud</th>
+            <th>Etiquetas</th>
+            <th>Piezas identificadas</th>
+            <th>Peso aproximado (kg)</th>
+            <th class="text-center">Detalle</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in palanquillas %}
+            <tr>
+              <td>{{ row.calidad }}</td>
+              <td>{{ row.longitud }} m</td>
+              <td>{{ row.etiquetas }}</td>
+              <td class="fw-semibold">{{ row.piezas }}</td>
+              <td>{{ '%.2f'|format(row.peso) }}</td>
+              <td class="text-center">
+                <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#detalle-palanquillas-{{ loop.index }}">Detalles</button>
+              </td>
+            </tr>
+          {% else %}
+            <tr><td colspan="6" class="text-center text-muted">No hay palanquillas disponibles.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% for row in varillas %}
+<div class="modal fade" id="detalle-varillas-{{ loop.index }}" tabindex="-1" aria-labelledby="detalle-varillas-{{ loop.index }}-label" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="detalle-varillas-{{ loop.index }}-label">Detalles · {{ row.producto }} / {{ row.medida }} mm / {{ row.longitud }} m</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="table table-sm table-striped align-middle">
+            <thead>
+              <tr>
+                <th>Etiqueta</th>
+                <th>Colada</th>
+                <th>Calidad</th>
+                <th>Medida</th>
+                <th>Longitud</th>
+                <th>Peso (kg)</th>
+                <th>Fecha</th>
+                <th>Creada</th>
+                <th>Lote</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in row.details %}
+                <tr>
+                  <td>{{ item.etiqueta }}</td>
+                  <td>{{ item.colada }}</td>
+                  <td>{{ item.calidad }}</td>
+                  <td>{{ item.medida }} mm</td>
+                  <td>{{ item.longitud }} m</td>
+                  <td>{{ '%.2f'|format(item.peso) }}</td>
+                  <td>{{ item.fecha }}</td>
+                  <td>{{ item.created_at }}</td>
+                  <td>{{ item.lote }}</td>
+                </tr>
+              {% else %}
+                <tr><td colspan="9" class="text-center text-muted">Sin etiquetas asociadas.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% for row in palanquillas %}
+<div class="modal fade" id="detalle-palanquillas-{{ loop.index }}" tabindex="-1" aria-labelledby="detalle-palanquillas-{{ loop.index }}-label" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="detalle-palanquillas-{{ loop.index }}-label">Detalles · {{ row.calidad }} / {{ row.longitud }} m</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="table table-sm table-striped align-middle">
+            <thead>
+              <tr>
+                <th>Etiqueta</th>
+                <th>Colada</th>
+                <th>Calidad</th>
+                <th>Longitud</th>
+                <th>Cantidad</th>
+                <th>Peso unit. (kg)</th>
+                <th>Fecha</th>
+                <th>Creada</th>
+                <th>Lote</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in row.details %}
+                <tr>
+                  <td>{{ item.etiqueta }}</td>
+                  <td>{{ item.colada }}</td>
+                  <td>{{ item.calidad }}</td>
+                  <td>{{ item.longitud }} m</td>
+                  <td>{{ item.cantidad }}</td>
+                  <td>{{ '%.2f'|format(item.peso) }}</td>
+                  <td>{{ item.fecha }}</td>
+                  <td>{{ item.created_at }}</td>
+                  <td>{{ item.lote }}</td>
+                </tr>
+              {% else %}
+                <tr><td colspan="9" class="text-center text-muted">Sin etiquetas asociadas.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,219 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="dashboard-card mt-3">
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+      <h3 class="mb-0">Reporte de Consumo y Costo por Máquina</h3>
+      <p style="color: #666; font-size: 0.9rem; margin-top: 5px;">
+        Período: <strong>
+          {% if period == 'all' %}Total{% elif period == 'dia' %}Hoy{% elif period == 'semana' %}Últimos 7 días{% elif period == 'mes' %}Últimos 30 días{% elif fecha_desde or fecha_hasta %}Personalizado{% else %}Total{% endif %}
+        </strong>
+        {% if fecha_desde or fecha_hasta %}
+        <span class="ms-2 text-muted">{{ fecha_desde or '...' }} al {{ fecha_hasta or '...' }}</span>
+        {% endif %}
+      </p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap align-items-center">
+      <div class="btn-group" role="group">
+        <a href="{{ url_for('reportes', period='all') }}" class="btn btn-sm {{ 'btn-primary' if period == 'all' else 'btn-outline-primary' }}">Total</a>
+        <a href="{{ url_for('reportes', period='dia') }}" class="btn btn-sm {{ 'btn-primary' if period == 'dia' else 'btn-outline-primary' }}">Día</a>
+        <a href="{{ url_for('reportes', period='semana') }}" class="btn btn-sm {{ 'btn-primary' if period == 'semana' else 'btn-outline-primary' }}">Semana</a>
+        <a href="{{ url_for('reportes', period='mes') }}" class="btn btn-sm {{ 'btn-primary' if period == 'mes' else 'btn-outline-primary' }}">Mes</a>
+      </div>
+      <form class="d-flex gap-2 flex-wrap align-items-center" method="get" action="{{ url_for('reportes') }}">
+        <input type="date" class="form-control form-control-sm" name="fecha_desde" value="{{ fecha_desde or '' }}" aria-label="Fecha desde">
+        <input type="date" class="form-control form-control-sm" name="fecha_hasta" value="{{ fecha_hasta or '' }}" aria-label="Fecha hasta">
+        <button type="submit" class="btn btn-sm btn-primary">Filtrar</button>
+      </form>
+      <div class="btn-group" role="group">
+        <a href="{{ url_for('export_report_csv', period=period, fecha_desde=fecha_desde or '', fecha_hasta=fecha_hasta or '') }}" class="btn btn-sm btn-success">CSV</a>
+        <a href="{{ url_for('export_report_pdf', period=period, fecha_desde=fecha_desde or '', fecha_hasta=fecha_hasta or '') }}" class="btn btn-sm btn-danger" target="_blank">PDF General</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-4">
+    <div class="col-md-3">
+      <div class="dashboard-card border-0" style="background: linear-gradient(135deg, #dbeafe, #eff6ff);">
+        <div class="small-muted">Máquinas</div>
+        <div class="h3 mb-0">{{ resumen|length }}</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="dashboard-card border-0" style="background: linear-gradient(135deg, #dcfce7, #f0fdf4);">
+        <div class="small-muted">Litros totales</div>
+        <div class="h3 mb-0">{{ '%.1f'|format(resumen|sum(attribute='total_litros')) }} L</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="dashboard-card border-0" style="background: linear-gradient(135deg, #fef3c7, #fffbeb);">
+        <div class="small-muted">Costo estimado</div>
+        <div class="h3 mb-0">{{ '%.0f'|format(resumen|sum(attribute='total_cost')) }} Gs</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="dashboard-card border-0" style="background: linear-gradient(135deg, #fce7f3, #fdf2f8);">
+        <div class="small-muted">Despachos</div>
+        <div class="h3 mb-0">{{ resumen|sum(attribute='registros') }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-4">
+    <div class="col-lg-6">
+      <div class="dashboard-card">
+        <h5 class="mb-3">Gráfico de consumo por máquina</h5>
+        <canvas id="consumoChart" height="180"></canvas>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="dashboard-card">
+        <h5 class="mb-3">Gráfico de costo por máquina</h5>
+        <canvas id="costoChart" height="180"></canvas>
+      </div>
+    </div>
+  </div>
+
+  {% if selected_machine and selected_data %}
+  <div class="dashboard-card mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+      <div>
+        <h4 class="mb-1">Detalle de {{ selected_machine.nombre }}</h4>
+        <small class="text-muted">{{ selected_machine.tipo }} · Responsable: {{ selected_machine.responsable }}</small>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="{{ url_for('export_machine_pdf', equipo_id=selected_machine.id, period=period, fecha_desde=fecha_desde or '', fecha_hasta=fecha_hasta or '') }}" class="btn btn-sm btn-danger" target="_blank">PDF Máquina</a>
+        <a href="{{ url_for('reportes', period=period, fecha_desde=fecha_desde or '', fecha_hasta=fecha_hasta or '') }}" class="btn btn-sm btn-outline-secondary">Ver general</a>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-md-3"><div class="border rounded p-3"><strong>Total L:</strong><div class="h5 mb-0">{{ '{:,.1f}'.format(selected_data.total_litros) }}</div></div></div>
+      <div class="col-md-3"><div class="border rounded p-3"><strong>Costo:</strong><div class="h5 mb-0">{{ '{:,.0f}'.format(selected_data.total_cost) }} Gs</div></div></div>
+      <div class="col-md-3"><div class="border rounded p-3"><strong>Km:</strong><div class="h5 mb-0">{{ '{:,.0f}'.format(selected_data.kilometraje_total) }}</div></div></div>
+      <div class="col-md-3"><div class="border rounded p-3"><strong>Despachos:</strong><div class="h5 mb-0">{{ selected_data.registros }}</div></div></div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-striped align-middle">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Litros</th>
+            <th>Responsable</th>
+            <th>Chofer</th>
+            <th>Tipo de carga</th>
+            <th>PDF</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for despacho in historial_equipo %}
+          <tr>
+            <td>{{ despacho.fecha.strftime('%d/%m/%Y') if despacho.fecha else 'Sin fecha' }}</td>
+            <td>{{ '%.1f'|format(despacho.litros) }} L</td>
+            <td>{{ despacho.responsable }}</td>
+            <td>{{ despacho.nombre_chofer or '-' }}</td>
+            <td>{{ despacho.tipo_carga or 'Media' }}</td>
+            <td><a href="{{ url_for('pdf_despacho', despacho_id=despacho.id) }}" class="btn btn-sm btn-outline-danger" target="_blank">PDF</a></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" class="text-center text-muted">Sin despachos para esta máquina</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="table-responsive">
+    <table class="table table-striped align-middle" style="font-size: 0.95rem;">
+      <thead style="background-color: #f8f9fa;">
+        <tr>
+          <th style="font-weight: bold;">Máquina</th>
+          <th style="font-weight: bold;">Total (L)</th>
+          <th style="font-weight: bold;">L/Hora</th>
+          <th style="font-weight: bold;">L/Despacho</th>
+          <th style="font-weight: bold;">Costo</th>
+          <th style="font-weight: bold;">Costo/Hora</th>
+          <th style="font-weight: bold;">Km</th>
+          <th style="font-weight: bold;">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in resumen %}
+        <tr style="border-bottom: 1px solid #ddd;">
+          <td style="font-weight: bold;">{{ item.equipo.nombre }}</td>
+          <td><span style="background-color: #e7f3ff; padding: 5px 10px; border-radius: 5px;">{{ '{:,.1f}'.format(item.total_litros) }} L</span></td>
+          <td>{{ '{:,.3f}'.format(item.consumo_hora) }} L/h</td>
+          <td>{{ '{:,.1f}'.format(item.consumo_promedio) }} L</td>
+          <td><span style="color: #28a745; font-weight: bold;">{{ '{:,.0f}'.format(item.total_cost) }} Gs</span></td>
+          <td><span style="color: #dc3545;">{{ '{:,.0f}'.format(item.costo_hora) }} Gs/h</span></td>
+          <td>{{ '{:,.0f}'.format(item.kilometraje_total) }} km</td>
+          <td>
+            <div class="d-flex gap-2">
+              <a href="{{ url_for('reportes', period=period, equipo_id=item.equipo.id, fecha_desde=fecha_desde or '', fecha_hasta=fecha_hasta or '') }}" class="btn btn-sm btn-outline-primary">Ver</a>
+              <a href="{{ url_for('export_machine_pdf', equipo_id=item.equipo.id, period=period, fecha_desde=fecha_desde or '', fecha_hasta=fecha_hasta or '') }}" class="btn btn-sm btn-outline-danger" target="_blank">PDF</a>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="text-center text-muted" style="padding: 30px;">Sin registros para el período seleccionado</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div style="margin-top: 20px; padding: 15px; background-color: #f0f8ff; border-left: 4px solid #0066cc; border-radius: 5px;">
+    <p style="margin: 0; font-size: 0.9rem; color: #333;">
+      <strong>Nota:</strong> El consumo y costo se calculan automáticamente según los despachos registrados y el precio promedio de compra de combustible.
+    </p>
+  </div>
+</div>
+
+<script>
+  const chartData = {{ chart_data | tojson }};
+  const consumoCtx = document.getElementById('consumoChart');
+  new Chart(consumoCtx, {
+    type: 'bar',
+    data: {
+      labels: chartData.labels,
+      datasets: [{
+        label: 'Consumo total (L)',
+        data: chartData.litros,
+        backgroundColor: '#4f46e5',
+        borderRadius: 8,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true } }
+    }
+  });
+
+  const costoCtx = document.getElementById('costoChart');
+  new Chart(costoCtx, {
+    type: 'line',
+    data: {
+      labels: chartData.labels,
+      datasets: [{
+        label: 'Costo total (Gs)',
+        data: chartData.costos,
+        borderColor: '#10b981',
+        backgroundColor: 'rgba(16, 185, 129, 0.2)',
+        fill: true,
+        tension: 0.3,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true } }
+    }
+  });
+
+  setInterval(function() {
+    window.location.reload();
+  }, 30000);
+</script>
+{% endblock %}

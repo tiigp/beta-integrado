@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-4">
+  <h1>Control de calidad</h1>
+  <p class="text-muted">Gestión de etiquetas, productos y certificaciones.</p>
+  <div class="row g-3 mt-2">
+    <div class="col-md-4"><a class="btn btn-success w-100 p-3" href="/admin/qality?show=nueva">Nueva etiqueta</a></div>
+    <div class="col-md-4"><a class="btn btn-primary w-100 p-3" href="/admin/certificaciones">Certificaciones</a></div>
+    <div class="col-md-4"><a class="btn btn-warning w-100 p-3" href="/admin/despacho">Despacho con escáner QR</a></div>
+    <div class="col-md-4"><a class="btn btn-outline-primary w-100 p-3" href="/admin/qality/consultar">Consultar etiquetas</a></div>
+    <div class="col-md-4"><a class="btn btn-outline-secondary w-100 p-3" href="/admin/qality/cierre-turno">Cierre de turno</a></div>
+  </div>
+</div>
+{% endblock %}

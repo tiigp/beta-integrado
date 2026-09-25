@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4"><div><h1>Colaboradores</h1><p class="text-muted mb-0">Alta y gestión del padrón de Recursos Humanos.</p></div><a class="btn btn-outline-primary" href="/rrhh/colaboradores/padron">Ver padrón</a></div>
+  <form method="post" enctype="multipart/form-data" class="row g-3">
+    <div class="col-md-4"><label class="form-label">Legajo</label><input class="form-control" name="legajo" required></div>
+    <div class="col-md-8"><label class="form-label">Nombre completo</label><input class="form-control" name="nombre" required></div>
+    <div class="col-md-4"><label class="form-label">Tipo de documento</label><select class="form-select" name="tipo_documento"><option value="CI">Cédula de identidad</option><option value="Pasaporte">Pasaporte</option><option value="Otro">Otro</option></select></div>
+    <div class="col-md-4"><label class="form-label">Nro. de documento</label><input class="form-control" name="documento"></div>
+    <div class="col-md-4"><label class="form-label">Área</label><input class="form-control" name="area"></div>
+    <div class="col-md-4"><label class="form-label">Cargo</label><input class="form-control" name="cargo"></div>
+    <div class="col-md-4"><label class="form-label">Puesto</label><input class="form-control" name="puesto"></div>
+    <div class="col-md-4"><label class="form-label">Fecha de ingreso</label><input class="form-control" type="date" name="fecha_ingreso" required></div>
+    <div class="col-md-4"><label class="form-label">Fecha de nacimiento</label><input class="form-control" type="date" name="fecha_nacimiento"></div>
+    <div class="col-md-4"><label class="form-label">Estado civil</label><select class="form-select" name="estado_civil"><option value="">Seleccione</option><option>Soltero/a</option><option>Casado/a</option><option>Divorciado/a</option><option>Viudo/a</option><option>Unión de hecho</option></select></div>
+    <div class="col-md-4"><label class="form-label">Sexo</label><select class="form-select" name="sexo"><option value="">Seleccione</option><option>Femenino</option><option>Masculino</option><option>Otro</option></select></div>
+    <div class="col-md-4"><label class="form-label">Vencimiento de cédula</label><input class="form-control" type="date" name="vencimiento_cedula"></div>
+    <div class="col-md-8"><label class="form-label">Dirección</label><input class="form-control" name="calle"></div>
+    <div class="col-md-4"><label class="form-label">País</label><input class="form-control" name="pais" value="Paraguay"></div>
+    <div class="col-md-4"><label class="form-label">Nacionalidad</label><input class="form-control" name="nacionalidad" value="Paraguaya"></div>
+    <div class="col-md-4"><label class="form-label">Sector o sección</label><input class="form-control" name="seccion"></div>
+    <div class="col-md-4"><label class="form-label">Correo electrónico</label><input class="form-control" type="email" name="correo"></div>
+    <div class="col-md-4"><label class="form-label">Número de teléfono</label><input class="form-control" name="telefono"></div>
+    <div class="col-md-4"><label class="form-label">¿Tiene hijos?</label><select class="form-select" name="hijos"><option value="NO">No</option><option value="SI">Sí</option></select></div>
+    <div class="col-md-4"><label class="form-label">Cantidad de hijos</label><input class="form-control" type="number" name="hijos_cantidad" min="0" value="0"></div>
+    <div class="col-md-4"><label class="form-label">Aporta IPS</label><select class="form-select" name="aporte_ips"><option>SI</option><option>NO</option><option>Jubilado</option></select></div>
+    <div class="col-md-4"><label class="form-label">Bonificación familiar</label><select class="form-select" name="bonificacion_familiar"><option value="NO">No</option><option value="SI">Sí</option></select></div>
+    <div class="col-md-4"><label class="form-label">Turno</label><input class="form-control" name="turno_linea"></div>
+    <div class="col-md-4"><label class="form-label">Foto</label><input class="form-control" type="file" name="foto" accept="image/*"></div>
+    <div class="col-12"><button class="btn btn-primary" type="submit">Guardar colaborador</button></div>
+  </form>
+</div>
+{% endblock %}

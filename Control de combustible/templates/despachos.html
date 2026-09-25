@@ -1,0 +1,76 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-1 mb-3">
+  <div><h2 class="mb-1">Despacho de combustible</h2><p class="text-muted mb-0">Registre una nueva carga de combustible.</p></div>
+  <div class="d-flex gap-2 flex-wrap"><a class="btn btn-outline-primary" href="{{ url_for('historial') }}"><i class="bi bi-clock-history me-1"></i>Ver historial de despachos</a><a class="btn btn-outline-primary" href="{{ url_for('reportes_maquinas') }}"><i class="bi bi-bar-chart-line me-1"></i>Reportes por máquina</a></div>
+</div>
+<style>
+  .dispatch-form-card { max-width: 1180px; margin: 0 auto; }
+  .dispatch-form-card .form-section-title { margin: 1rem 0 .75rem; padding-bottom: .45rem; border-bottom: 1px solid #dbe3ee; color: #526779; font-size: .82rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+  .dispatch-form-card .form-label { font-weight: 600; }
+</style>
+<div class="row g-4">
+  <div class="col-12">
+    <div class="dashboard-card dispatch-form-card">
+      <h4 class="mb-4" style="border-bottom: 2px solid #007bff; padding-bottom: 10px;">Nuevo despacho</h4>
+      <form method="post" class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Equipo</label>
+          <select class="form-select" name="equipo_id" required>
+            <option value="">Seleccione un equipo</option>
+            {% for equipo in equipos %}
+            <option value="{{ equipo.id }}">{{ equipo.nombre }} ({{ equipo.tipo }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Litros entregados</label>
+          <input type="number" class="form-control" name="litros" min="1" step="0.01" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Responsable</label>
+          <input type="text" class="form-control" name="responsable" required>
+        </div>
+        <div class="col-12"><div class="form-section-title">Datos operacionales</div></div>
+        
+        <div class="col-md-4">
+          <label class="form-label">Nombre del chofer</label>
+          <input type="text" class="form-control" name="nombre_chofer" placeholder="Ej: Juan Pérez">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Hora (hs)</label>
+          <input type="number" class="form-control" name="hora" min="0" step="0.01" placeholder="Opcional: 6.5">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Horómetro (hs)</label>
+          <input type="number" class="form-control" name="horometro" min="0" step="0.01" placeholder="Opcional: 125.5">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Kilometraje (km)</label>
+          <input type="number" class="form-control" name="kilometraje" min="0" step="0.01" placeholder="Opcional: 840">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Tipo de carga</label>
+          <select class="form-select" name="tipo_carga">
+            <option value="Baja">Baja</option>
+            <option value="Media" selected>Media</option>
+            <option value="Pesada">Pesada</option>
+          </select>
+        </div>
+        
+        <div class="col-12"><div class="form-section-title">Cierre del despacho</div></div>
+        <div class="col-md-3">
+          <label class="form-label">Fecha</label>
+          <input type="date" class="form-control" name="fecha">
+        </div>
+        <div class="col-md-9">
+          <label class="form-label">Observación</label>
+          <textarea class="form-control" name="observacion" rows="3" placeholder="Detalles adicionales del despacho"></textarea>
+        </div>
+        <div class="col-12"><button class="btn btn-primary w-100" type="submit" style="font-size: 1.1rem; padding: 10px;">✓ Registrar despacho</button></div>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

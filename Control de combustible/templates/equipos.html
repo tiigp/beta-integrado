@@ -1,0 +1,56 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="row g-4 mt-1">
+  <div class="col-lg-4">
+    <div class="dashboard-card">
+      <h4 class="mb-3">Registrar equipo</h4>
+      <form method="post">
+        <div class="mb-3">
+          <label class="form-label">Nombre</label>
+          <input type="text" class="form-control" name="nombre" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Tipo</label>
+          <input type="text" class="form-control" name="tipo" placeholder="Montacarga, garra, tractor..." required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Responsable</label>
+          <input type="text" class="form-control" name="responsable" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Estado</label>
+          <select class="form-select" name="estado">
+            <option>Activo</option>
+            <option>En servicio</option>
+            <option>Fuera de servicio</option>
+          </select>
+        </div>
+        <button class="btn btn-primary w-100" type="submit">Guardar equipo</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="dashboard-card">
+      <h4 class="mb-3">Equipos registrados</h4>
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr><th>Nombre</th><th>Tipo</th><th>Responsable</th><th>Estado</th></tr>
+        </thead>
+        <tbody>
+          {% for equipo in equipos %}
+          <tr>
+            <td>{{ equipo.nombre }}</td>
+            <td>{{ equipo.tipo }}</td>
+            <td>{{ equipo.responsable }}</td>
+            <td><span class="badge bg-success">{{ equipo.estado }}</span></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" class="text-center text-muted">No hay equipos registrados</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

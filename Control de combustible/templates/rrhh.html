@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+{% block content %}
+<style>
+  .hr-home { max-width: 1160px; margin: 0 auto; color: #172033; }
+  .hr-hero { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; padding: 1.8rem 2rem; border: 1px solid #d9e4ee; border-radius: 18px; background: linear-gradient(120deg, #fff 0%, #f7eff6 55%, #eef5fb 100%); box-shadow: 0 14px 34px rgba(60, 49, 77, .1); }
+  .hr-kicker { margin-bottom: .55rem; color: #a24373; font-size: .72rem; font-weight: 750; letter-spacing: .16em; text-transform: uppercase; }
+  .hr-hero h1 { margin: 0; color: #4d2c50; font-size: clamp(1.8rem, 3vw, 2.55rem); font-weight: 750; letter-spacing: -.03em; }
+  .hr-hero p { max-width: 660px; margin: .45rem 0 0; color: #6b7280; }
+  .hr-hero-side { display: flex; flex-direction: column; align-items: flex-end; gap: .8rem; }
+  .hr-hero-actions { display: flex; align-items: center; justify-content: flex-end; gap: .45rem; flex-wrap: wrap; }
+  .hr-hero-actions .back-button, .hr-hero-actions .logout-link { color: #52657d; border-color: #cbd8e5; background: #f3f7fb; }
+  .hr-hero-actions .back-button:hover, .hr-hero-actions .logout-link:hover { color: #263b53; background: #e7eef6; }
+  .hr-hero-actions .header-menu { color: #52657d; }
+  .hr-hero-mark { display: grid; place-items: center; width: 76px; height: 76px; border-radius: 22px; background: #a24373; color: #fff; font-size: 2.15rem; box-shadow: 0 12px 24px rgba(162, 67, 115, .24); }
+  .hr-section { margin-top: 1.5rem; }
+  .hr-section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: .8rem; }
+  .hr-section-heading h2 { margin: 0; color: #263b53; font-size: 1.05rem; font-weight: 750; }
+  .hr-section-heading span { color: #8492a6; font-size: .8rem; }
+  .hr-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .9rem; }
+  .hr-action { position: relative; display: flex; align-items: center; gap: .85rem; min-height: 112px; padding: 1rem; overflow: hidden; border: 1px solid color-mix(in srgb, var(--hr-color) 22%, #dbe5ef); border-radius: 14px; background: linear-gradient(145deg, color-mix(in srgb, var(--hr-color) 9%, #fff), #fff 72%); color: #172033; text-decoration: none; box-shadow: 0 7px 18px rgba(31, 41, 55, .06); transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease; }
+  .hr-action:hover { color: #172033; transform: translateY(-3px); border-color: var(--hr-color); box-shadow: 0 14px 28px rgba(31, 41, 55, .12); }
+  .hr-action::after { content: ""; position: absolute; width: 90px; height: 90px; right: -42px; bottom: -48px; border: 14px solid var(--hr-color); border-radius: 50%; opacity: .12; }
+  .hr-icon { display: grid; place-items: center; width: 46px; height: 46px; flex: 0 0 46px; border-radius: 12px; background: var(--hr-color); color: #fff; font-size: 1.25rem; box-shadow: 0 7px 14px color-mix(in srgb, var(--hr-color) 24%, transparent); }
+  .hr-action h3 { margin: 0; color: #263b53; font-size: .98rem; font-weight: 750; }
+  .hr-action p { margin: .3rem 0 0; color: #718096; font-size: .82rem; line-height: 1.35; }
+  .hr-arrow { margin-left: auto; color: #9aabba; }
+  .hr-action:hover .hr-arrow { color: var(--hr-color); }
+  .hr-people { --hr-color: #a24373; } .hr-evaluations { --hr-color: #286a9f; } .hr-agenda { --hr-color: #6750a4; } .hr-notifications { --hr-color: #bd6c1f; } .hr-holidays { --hr-color: #247c63; } .hr-disciplinary { --hr-color: #b24b3c; } .hr-documents { --hr-color: #a56e18; } .hr-manual { --hr-color: #52657d; }
+  .hr-notifications { order: -1; border-width: 2px; }
+  .hr-notifications .hr-icon { width: 52px; height: 52px; font-size: 1.45rem; }
+  @media (max-width: 850px) { .hr-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 520px) { .hr-hero { padding: 1.4rem; } .hr-hero-side { width: 100%; align-items: flex-start; } .hr-hero-actions { justify-content: flex-start; } .hr-hero-mark { width: 58px; height: 58px; font-size: 1.6rem; } .hr-grid { grid-template-columns: 1fr; } .hr-action { min-height: 92px; } }
+</style>
+<div class="container py-4 hr-home">
+  <header class="hr-hero"><div><div class="hr-kicker">IGP Metales · Personas</div><h1>Recursos Humanos</h1><p>Gestione el ciclo completo de colaboradores, evaluaciones, agenda y documentación desde un único espacio.</p></div><div class="hr-hero-side"><div class="hr-hero-actions" aria-label="Acciones de cuenta"><a class="back-button" href="{{ url_for('admin_dashboard') }}">Volver al panel</a><div class="dropdown"><button class="logout-link" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Cuenta"><i class="bi bi-person-circle"></i><span class="d-none d-md-inline">Cuenta</span></button><ul class="dropdown-menu dropdown-menu-end"><li><span class="dropdown-item-text"><strong>{{ current_user.full_name }}</strong><br><small>@{{ current_user.username }}</small></span></li></ul></div><a class="logout-link" href="{{ url_for('logout') }}" title="Cerrar sesión"><i class="bi bi-box-arrow-right"></i><span>Cerrar sesión</span></a><button class="header-menu" type="button" aria-label="Acciones"><span></span></button></div><div class="hr-hero-mark"><i class="bi bi-people"></i></div></div></header>
+  <section class="hr-section"><div class="hr-section-heading"><h2>Gestión diaria</h2><span>Operación de personal</span></div><div class="hr-grid">
+    <a class="hr-action hr-notifications" href="{{ url_for('rrhh_notificaciones') }}"><span class="hr-icon"><i class="bi bi-bell-fill"></i></span><span><h3>Notificaciones{% if unread_notifications %} <span class="badge rounded-pill text-bg-danger">{{ unread_notifications }}</span>{% endif %}</h3><p>Ver avisos y acciones pendientes</p></span><i class="bi bi-arrow-up-right hr-arrow"></i></a>
+    <a class="hr-action hr-people" href="/rrhh/colaboradores"><span class="hr-icon"><i class="bi bi-person-vcard"></i></span><span><h3>Colaboradores</h3><p>Alta y padrón del personal</p></span><i class="bi bi-arrow-up-right hr-arrow"></i></a>
+    <a class="hr-action hr-evaluations" href="/rrhh/evaluaciones"><span class="hr-icon"><i class="bi bi-clipboard2-check"></i></span><span><h3>Evaluaciones</h3><p>Seguimiento del desempeño</p></span><i class="bi bi-arrow-up-right hr-arrow"></i></a>
+    <a class="hr-action hr-agenda" href="{{ url_for('planificador_evaluaciones_rrhh') }}"><span class="hr-icon"><i class="bi bi-calendar2-week"></i></span><span><h3>Planificador</h3><p>Fechas y responsables</p></span><i class="bi bi-arrow-up-right hr-arrow"></i></a>
+    <a class="hr-action hr-agenda" href="/rrhh/agenda"><span class="hr-icon"><i class="bi bi-calendar3"></i></span><span><h3>Agenda</h3><p>Eventos y compromisos</p></span><i class="bi bi-arrow-up-right hr-arrow"></i></a>
+  </div></section>
+  <section class="hr-section"><div class="hr-section-heading"><h2>Administración y soporte</h2><span>Control documental y seguimiento</span></div><div class="hr-grid">
+    <a class="hr-action hr-holidays" href="/rrhh/vacaciones"><span class="hr-icon"><i class="bi bi-sun"></i></span><span><h3>Vacaciones</h3><p>Planificación y registros</p></span><i class="bi bi-arrow-up-right hr-arrow"></i></a>
+    <a class="hr-action hr-disciplinary" href="/rrhh/disciplinario"><span class="hr-icon"><i class="bi bi-shield-exclamation"></i></span><span><h3>Disciplinario</h3><p>Antecedentes y medidas</p></span><i class="bi bi-arrow-up-right hr-arrow"></i></a>
+    <a class="hr-action hr-documents" href="/rrhh/documentos"><span class="hr-icon"><i class="bi bi-folder2-open"></i></span><span><h3>Documentos RRHH</h3><p>Archivo del personal</p></span><i class="bi bi-arrow-up-right hr-arrow"></i></a>
+    <a class="hr-action hr-manual" href="/rrhh/manual.pdf"><span class="hr-icon"><i class="bi bi-book"></i></span><span><h3>Manual de usuario</h3><p>Guía de operación del módulo</p></span><i class="bi bi-arrow-up-right hr-arrow"></i></a>
+  </div></section>
+</div>
+{% endblock %}

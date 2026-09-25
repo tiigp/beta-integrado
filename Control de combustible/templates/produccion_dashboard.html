@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+{% block content %}
+<style>
+  .production-page { max-width: 1120px; margin: 0 auto; color: #172033; }
+  .production-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+  .production-module { display: flex; min-height: 240px; flex-direction: column; justify-content: space-between; padding: 1.2rem 1.25rem 1.15rem; color: #172033; text-decoration: none; border: 1px solid #dce4eb; border-top: 4px solid #b66528; border-radius: 12px; background: #fff; box-shadow: 0 8px 20px rgba(31,65,88,.07); transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+  .production-module:hover { color: #172033; transform: translateY(-4px); border-color: #b66528; box-shadow: 0 16px 32px rgba(31,65,88,.15); }
+  .production-module-icon { display: grid; width: 54px; height: 54px; place-items: center; color: #b66528; border: 1px solid #edd1b5; border-radius: 14px; background: #fff5e9; font-size: 1.5rem; }
+  .production-module h2 { margin: 1.1rem 0 .35rem; color: #20384e; font-size: 1.25rem; }
+  .production-module p { margin: 0; color: #718096; line-height: 1.45; }
+  .production-module-footer { display: flex; align-items: center; justify-content: flex-end; margin-top: 1.5rem; color: #b66528; font-weight: 700; }
+  @media (max-width: 700px) { .production-grid { grid-template-columns: 1fr; } }
+</style>
+<div class="container-fluid py-4 production-page">
+  <main class="production-grid" aria-label="Módulos de producción">
+    <a class="production-module" href="{{ url_for('laminacion_dashboard') }}"><div><span class="production-module-icon"><i class="bi bi-bezier2"></i></span><h2>Laminación</h2><p>Registre paradas, chatarra, palanquillas enviadas a la cama de enfriamiento y consulte la producción por turno.</p></div><span class="production-module-footer"><i class="bi bi-arrow-up-right"></i></span></a>
+    <a class="production-module" href="{{ url_for('horno_laminacion') }}"><div><span class="production-module-icon"><i class="bi bi-fire"></i></span><h2>Carga de Horno</h2><p>Consulte etiquetas de palanquillas, cambie de colada y controle la carga del horno.</p></div><span class="production-module-footer"><i class="bi bi-arrow-up-right"></i></span></a>
+  </main>
+</div>
+{% endblock %}

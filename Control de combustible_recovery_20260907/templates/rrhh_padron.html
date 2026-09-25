@@ -1,0 +1,7 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4"><h1>Padrón de colaboradores</h1><a class="btn btn-primary" href="/rrhh/colaboradores">Nuevo colaborador</a></div>
+  <div class="table-responsive"><table class="table table-hover"><thead><tr><th>Legajo</th><th>Nombre</th><th>Área</th><th>Cargo</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>{% for item in colaboradores %}<tr><td>{{ item.legajo }}</td><td>{{ item.nombre }}</td><td>{{ item.area or '-' }}</td><td>{{ item.cargo or '-' }}</td><td>{{ item.estado or '-' }}</td><td><a class="btn btn-sm btn-outline-primary" href="/rrhh/colaboradores/{{ item.id }}/editar">Editar</a></td></tr>{% else %}<tr><td colspan="6">No hay colaboradores registrados.</td></tr>{% endfor %}</tbody></table></div>
+</div>
+{% endblock %}

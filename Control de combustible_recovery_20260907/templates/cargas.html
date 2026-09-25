@@ -1,0 +1,58 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="row g-4 mt-1">
+  <div class="col-lg-4">
+    <div class="dashboard-card">
+      <h4 class="mb-3">Registrar carga</h4>
+      <p class="small text-muted mb-3">Ingrese solo los litros cargados. El administrador actualizará el precio.</p>
+      <form method="post">
+        <div class="mb-3">
+          <label class="form-label"><strong>Litros cargados</strong></label>
+          <input type="number" class="form-control" name="litros" min="1" step="0.01" placeholder="Ej: 500" required autofocus>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Notas / Observaciones</label>
+          <textarea class="form-control" name="notas" rows="3" placeholder="Detalles adicionales (opcional)"></textarea>
+        </div>
+        <button class="btn btn-primary w-100" type="submit" style="font-size: 1rem; padding: 10px;">Registrar carga</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="dashboard-card">
+      <h4 class="mb-3">Cargas registradas</h4>
+      <div style="overflow-x: auto;">
+        <table class="table table-hover align-middle">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Litros</th>
+              <th>Estado</th>
+              <th>Notas</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for carga in cargas %}
+            <tr>
+              <td><small>{{ carga.fecha.strftime('%d/%m/%Y %H:%M') if carga.fecha else 'Sin fecha' }}</small></td>
+              <td><strong>{{ '%.0f'|format(carga.litros or 0) }} L</strong></td>
+              <td>
+                {% if carga.precio_litro == 0 %}
+                  <span class="badge bg-warning">Precio pendiente</span>
+                {% else %}
+                  <span class="badge bg-success">Precio: {{ '%.0f'|format(carga.precio_litro) }} Gs/L</span>
+                {% endif %}
+              </td>
+              <td><small>{{ carga.notas or '-' }}</small></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="text-center text-muted">No hay cargas registradas</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-4">
+  <h1>Recursos Humanos</h1>
+  <p class="text-muted">Gestión de colaboradores, evaluaciones, vacaciones y documentos.</p>
+  <div class="row g-3 mt-2">
+    <div class="col-md-4"><a class="btn btn-primary w-100 p-3" href="/rrhh/colaboradores">Colaboradores</a></div>
+    <div class="col-md-4"><a class="btn btn-outline-primary w-100 p-3" href="/rrhh/evaluaciones">Evaluaciones</a></div>
+    <div class="col-md-4"><a class="btn btn-outline-primary w-100 p-3" href="/rrhh/agenda">Agenda</a></div>
+    <div class="col-md-4"><a class="btn btn-outline-secondary w-100 p-3" href="/rrhh/vacaciones">Vacaciones</a></div>
+    <div class="col-md-4"><a class="btn btn-outline-secondary w-100 p-3" href="/rrhh/disciplinario">Disciplinario</a></div>
+    <div class="col-md-4"><a class="btn btn-outline-secondary w-100 p-3" href="/rrhh/documentos">Documentos RRHH</a></div>
+    <div class="col-md-4"><a class="btn btn-outline-secondary w-100 p-3" href="/rrhh/manual.pdf">Manual de usuario</a></div>
+  </div>
+  {% if notifications %}<div class="mt-4"><h2 class="h5">Notificaciones recientes</h2><ul>{% for item in notifications %}<li>{{ item.titulo }}</li>{% endfor %}</ul></div>{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+      <div class="small text-uppercase text-primary fw-semibold">Control de Calidad</div>
+      <h1 class="mb-1">Responsables</h1>
+      <p class="text-muted mb-0">Cargue los nombres que aparecerán en las listas de Palanquillas y Varillas.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{{ url_for('quality_dashboard') }}"><i class="bi bi-arrow-left me-2"></i>Volver a Calidad</a>
+  </div>
+
+  <div class="quality-form-card p-4 mb-4">
+    <h5 class="mb-3">Nuevo responsable</h5>
+    <form method="post" class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label" for="nombre">Nombre completo</label>
+        <input class="form-control" id="nombre" name="nombre" required maxlength="120">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="tipo">Campo</label>
+        <select class="form-select" id="tipo" name="tipo" required>
+          <option value="">Seleccione</option>
+          <option>Operador de Horno</option>
+          <option>Operador de CCM</option>
+          <option>Supervisor</option>
+        </select>
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <button class="btn btn-primary w-100" type="submit"><i class="bi bi-save me-2"></i>Guardar</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="quality-form-card p-4">
+    <h5 class="mb-3">Responsables cargados</h5>
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead><tr><th>Nombre</th><th>Campo</th><th>Estado</th><th></th></tr></thead>
+        <tbody>
+          {% for responsable in responsables %}
+          <tr>
+            <td>{{ responsable.nombre }}</td>
+            <td>{{ responsable.tipo }}</td>
+            <td><span class="badge {{ 'text-bg-success' if responsable.activo else 'text-bg-secondary' }}">{{ 'Activo' if responsable.activo else 'Retirado' }}</span></td>
+            <td class="text-end">{% if responsable.activo %}<form method="post" action="{{ url_for('eliminar_responsable_calidad', responsable_id=responsable.id) }}" class="d-inline"><button class="btn btn-sm btn-outline-danger" type="submit"><i class="bi bi-person-dash me-1"></i>Retirar</button></form>{% endif %}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" class="text-center text-muted py-3">Todavía no hay responsables cargados.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

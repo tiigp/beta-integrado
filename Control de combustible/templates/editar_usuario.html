@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+{% block content %}
+<style>
+  .edit-user-page { max-width: 760px; margin: 0 auto; }
+  .edit-user-hero { padding: 1.5rem 1.7rem; border: 1px solid #dbe5ef; border-radius: 16px; background: linear-gradient(120deg, #fff, #eef6fb); }
+  .edit-user-hero h1 { margin: 0; color: #163b5b; }
+  .edit-user-hero p { margin: .45rem 0 0; color: #64748b; }
+  .edit-user-card { margin-top: 1rem; padding: 1.4rem; border: 1px solid #dbe5ef; border-radius: 14px; background: #fff; box-shadow: 0 8px 22px rgba(31,41,55,.06); }
+</style>
+<div class="container py-4 edit-user-page">
+  <header class="edit-user-hero">
+    <div class="small text-uppercase text-primary fw-semibold">Administración del sistema</div>
+    <h1>Editar usuario</h1>
+    <p>Vincule la cuenta con el colaborador que representa para usar sus datos maestros.</p>
+  </header>
+  <section class="edit-user-card">
+    <form method="post">
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label">Usuario</label><input class="form-control" value="{{ usuario.username }}" disabled></div>
+        <div class="col-md-6"><label class="form-label" for="role">Nivel de acceso</label><select class="form-select" id="role" name="role" required>{% for role, label in [('admin','Administrador'),('root','Superusuario'),('rrhh','RRHH'),('compras','Compras'),('autorizador_compras','Autorizador de compras'),('gerencia','Gerencia'),('supervisor','Supervisor'),('control_calidad','Control de Calidad'),('operador_horno','Operador de carga de horno'),('operador_despunte','Operador de despunte'),('deposito','Depósito'),('despacho','Despacho'),('calidad','Calidad')] %}<option value="{{ role }}" {{ 'selected' if usuario.role == role else '' }}>{{ label }}</option>{% endfor %}</select></div>
+        <div class="col-12"><label class="form-label" for="colaborador_id">Colaborador / legajo vinculado</label><select class="form-select" id="colaborador_id" name="colaborador_id"><option value="">Sin vincular</option>{% for colaborador in colaboradores %}<option value="{{ colaborador.id }}" {{ 'selected' if usuario.colaborador_id == colaborador.id else '' }}>{{ colaborador.nombre }} · Legajo {{ colaborador.legajo or '-' }} · {{ colaborador.correo or 'Sin correo' }} · {{ colaborador.telefono or 'Sin teléfono' }}</option>{% endfor %}</select><div class="form-text">Al vincularlo, el nombre, correo y teléfono del usuario se tomarán del padrón.</div></div>
+        <div class="col-md-6"><label class="form-label" for="full_name">Nombre mostrado</label><input class="form-control" id="full_name" name="full_name" value="{{ usuario.full_name }}" required></div>
+        <div class="col-md-6"><label class="form-label" for="password">Nueva contraseña <span class="text-muted fw-normal">(opcional)</span></label><input class="form-control" id="password" name="password" type="password" minlength="6" autocomplete="new-password"></div>
+        <div class="col-md-6"><label class="form-label" for="correo">Correo manual</label><input class="form-control" id="correo" name="correo" type="email" value="{{ usuario.correo or '' }}"></div>
+        <div class="col-md-6"><label class="form-label" for="telefono">Teléfono manual</label><input class="form-control" id="telefono" name="telefono" value="{{ usuario.telefono or '' }}"></div>
+      </div>
+      <div class="d-flex justify-content-end gap-2 mt-4"><a class="btn btn-outline-secondary" href="{{ url_for('usuarios') }}">Cancelar</a><button class="btn btn-primary" type="submit"><i class="bi bi-save me-1"></i>Guardar cambios</button></div>
+    </form>
+  </section>
+</div>
+{% endblock %}

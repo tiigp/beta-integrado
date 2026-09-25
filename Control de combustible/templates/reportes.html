@@ -1,0 +1,355 @@
+{% extends 'layout.html' %}
+{% block content %}
+<style>
+  .fuel-reports { color: #1f2937; background: linear-gradient(145deg, #f7fafc 0%, #eef5f8 100%); padding: 1.25rem; border: 1px solid #dce8ed; border-radius: 18px; }
+  .fuel-reports .dashboard-card { background: #ffffff; color: #1f2937; border: 1px solid #dbe3ee; box-shadow: 0 8px 24px rgba(31, 41, 55, .07); }
+  .fuel-reports .small-muted, .fuel-reports .text-muted { color: #64748b !important; }
+  .fuel-reports h3, .fuel-reports h4, .fuel-reports h5 { color: #172033; }
+  .fuel-reports .stock-card { height: 100%; padding: 1.15rem; border-radius: 12px; }
+  .fuel-reports .stock-value { display: block; margin-top: .25rem; font-size: 2rem; font-weight: 800; }
+  .fuel-reports .stock-tank { position: relative; isolation: isolate; min-height: 150px; overflow: hidden; color: #123d32; background: linear-gradient(180deg, #f5fffa, #e7f8ee); border: 1px solid #86efac; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .65), 0 8px 18px rgba(22, 130, 105, .08); }
+  .fuel-reports .stock-tank::before { content: ""; position: absolute; inset: 8px; z-index: -1; border: 1px solid rgba(22, 130, 105, .16); border-radius: 8px; pointer-events: none; }
+  .fuel-reports .stock-liquid { position: absolute; right: 0; bottom: 0; left: 0; z-index: 0; height: var(--stock-level); overflow: hidden; background: linear-gradient(115deg, rgba(255, 193, 7, .9), rgba(218, 141, 0, .98), rgba(255, 214, 64, .9), rgba(218, 141, 0, .98)); background-size: 260% 100%; animation: fuel-liquid-flow 9s linear infinite; transition: height .8s ease, background .5s ease; }
+  .fuel-reports .stock-liquid::before, .fuel-reports .stock-liquid::after { content: ""; position: absolute; top: -13px; left: -55%; width: 210%; height: 30px; transform: rotate(-2deg); border-radius: 48%; background: rgba(255, 239, 163, .78); box-shadow: 0 2px 8px rgba(126, 78, 0, .18); animation: fuel-surface-wave 3.2s ease-in-out infinite alternate; }
+  .fuel-reports .stock-liquid::after { top: -7px; left: -42%; height: 22px; border-radius: 44%; background: rgba(255, 255, 255, .34); animation-duration: 2.1s; animation-direction: reverse; }
+  .fuel-reports .stock-tank-content { position: relative; z-index: 2; display: flex; min-height: 118px; flex-direction: column; justify-content: center; color: #fff; text-shadow: 0 1px 3px rgba(0, 55, 35, .7); }
+  .fuel-reports .stock-tank-content .stock-value { margin-top: .25rem; color: #fff; text-shadow: 0 2px 4px rgba(0, 55, 35, .75); }
+  .fuel-reports .stock-alert { background: linear-gradient(180deg, #fff7f7, #fff1f2); border-color: #fda4af; color: #7f1d1d; }
+  .fuel-reports .stock-alert .stock-liquid { background: linear-gradient(180deg, rgba(248, 113, 113, .84), rgba(190, 42, 58, .94)); }
+  .fuel-reports .stock-alert .stock-tank-content { text-shadow: 0 1px 3px rgba(95, 0, 0, .7); }
+  .fuel-reports .stock-alert .stock-value { color: #fff; }
+  @keyframes fuel-liquid-flow { from { background-position: 0% 50%; } to { background-position: 260% 50%; } }
+  @keyframes fuel-surface-wave { 0% { transform: translateX(-7%) rotate(-3deg); border-radius: 46% 54% 42% 58%; } 50% { transform: translateX(4%) rotate(2deg); border-radius: 58% 42% 55% 45%; } 100% { transform: translateX(10%) rotate(-1deg); border-radius: 42% 58% 48% 52%; } }
+  .fuel-reports .stock-form { padding: 1rem; background: #f8fafc; border: 1px solid #dbe3ee; border-radius: 12px; }
+  .fuel-reports .report-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .85rem; margin-bottom: 1.5rem; }
+  .fuel-reports .report-kpi { position: relative; min-height: 128px; padding: 1rem 1.05rem; border: 1px solid #dbe5ec; border-radius: 14px; background: #fff; box-shadow: 0 6px 18px rgba(31, 41, 55, .05); overflow: hidden; }
+  .fuel-reports .report-kpi::after { content: ""; position: absolute; right: -22px; bottom: -28px; width: 92px; height: 92px; border-radius: 50%; background: var(--kpi-soft); }
+  .fuel-reports .report-kpi-top { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: .6rem; }
+  .fuel-reports .report-kpi-label { color: #70818b; font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+  .fuel-reports .report-kpi-icon { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; color: var(--kpi-color); background: var(--kpi-soft); font-size: 1rem; }
+  .fuel-reports .report-kpi-value { position: relative; z-index: 1; display: block; margin-top: .75rem; color: #173d52; font-size: clamp(1.35rem, 2.2vw, 1.85rem); font-weight: 800; letter-spacing: -.02em; line-height: 1.1; }
+  .fuel-reports .report-kpi-context { position: relative; z-index: 1; display: block; margin-top: .4rem; color: #8a99a1; font-size: .78rem; }
+  .fuel-reports .report-kpi-machines { --kpi-color: #087e8b; --kpi-soft: #e4f5f6; }
+  .fuel-reports .report-kpi-liters { --kpi-color: #2673a8; --kpi-soft: #e7f1fa; }
+  .fuel-reports .report-kpi-cost { --kpi-color: #bd6b08; --kpi-soft: #fff2d9; }
+  .fuel-reports .report-kpi-dispatches { --kpi-color: #56715b; --kpi-soft: #eaf4eb; }
+  .fuel-reports .report-header { padding: .35rem .25rem 1.25rem; }
+  .fuel-reports .report-header-main { display: flex; align-items: flex-start; justify-content: space-between; gap: 1.25rem; }
+  .fuel-reports .report-header-actions { display: flex; min-width: min(100%, 520px); flex-direction: column; align-items: stretch; gap: .65rem; }
+  .fuel-reports .report-account-block, .fuel-reports .report-tools-block { display: flex; align-items: center; justify-content: flex-end; gap: .45rem; flex-wrap: wrap; }
+  .fuel-reports .report-account-block { padding-bottom: .65rem; border-bottom: 1px solid #dbe5ec; }
+  .fuel-reports .report-tools-block { padding: .7rem; border: 1px solid #dbe5ec; border-radius: 12px; background: #f8fafc; }
+  .fuel-reports .report-tools-label { margin-right: auto; color: #718096; font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+  .fuel-reports .report-account-block .back-button, .fuel-reports .report-account-block .logout-link { color: #40516a; border-color: #cbd8e8; background: #eef4fb; }
+  .fuel-reports .report-account-block .back-button:hover, .fuel-reports .report-account-block .logout-link:hover { color: #173d52; background: #e0ebf7; }
+  .fuel-reports .report-account-block .header-menu { color: #40516a; }
+  @media (max-width: 900px) { .fuel-reports .report-header-main { flex-direction: column; } .fuel-reports .report-header-actions { width: 100%; } }
+  .fuel-reports .report-title { color: #12344a; font-weight: 800; letter-spacing: -.02em; }
+  .fuel-reports .report-subtitle { max-width: 620px; color: #667985; }
+  .fuel-reports .chart-card { height: 100%; padding: 1.2rem 1.2rem 1rem; border-radius: 16px; overflow: hidden; }
+  .fuel-reports .chart-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: .85rem; }
+  .fuel-reports .chart-card h5 { margin: 0; color: #173d52; font-size: 1rem; font-weight: 750; }
+  .fuel-reports .chart-card p { margin: .25rem 0 0; color: #82919a; font-size: .78rem; }
+  .fuel-reports .chart-marker { width: 10px; height: 10px; margin-top: .35rem; border-radius: 50%; flex: 0 0 10px; }
+  .fuel-reports .chart-marker.consumo { background: #087e8b; box-shadow: 0 0 0 5px rgba(8, 126, 139, .1); }
+  .fuel-reports .chart-marker.costo { background: #d97706; box-shadow: 0 0 0 5px rgba(217, 119, 6, .1); }
+  .fuel-reports .chart-frame { position: relative; height: 285px; }
+  .fuel-reports canvas { width: 100% !important; height: 100% !important; }
+  @media (max-width: 900px) { .fuel-reports .report-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 576px) { .fuel-reports { padding: .8rem; } .fuel-reports .report-kpis { grid-template-columns: 1fr; } .fuel-reports .chart-frame { height: 240px; } }
+</style>
+<div class="fuel-reports">
+  <div class="report-header report-header-main">
+    <div><div class="small text-uppercase text-primary fw-semibold">Módulo de combustible</div><h2 class="report-title mb-1">Stock y estadísticas de uso</h2><p class="report-subtitle mb-0">Controle el stock saludable y genere reportes por máquina.</p></div>
+    <div class="report-header-actions">
+      <div class="report-account-block">
+        <a class="back-button" href="{{ url_for('admin_dashboard') }}">Volver al panel</a>
+        <div class="dropdown"><button class="logout-link" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Cuenta"><i class="bi bi-person-circle"></i><span class="d-none d-md-inline">Cuenta</span></button><ul class="dropdown-menu dropdown-menu-end"><li><span class="dropdown-item-text"><strong>{{ current_user.full_name }}</strong><br><small>@{{ current_user.username }}</small></span></li></ul></div>
+        <a class="logout-link" href="{{ url_for('logout') }}" title="Cerrar sesión"><i class="bi bi-box-arrow-right"></i><span>Cerrar sesión</span></a>
+        <button class="header-menu" type="button" aria-label="Acciones"><span></span></button>
+      </div>
+      <div class="report-tools-block"><span class="report-tools-label">Acciones de combustible</span><a class="btn btn-primary" href="{{ url_for('compras') }}">Cargar compra</a><a class="btn btn-outline-success" href="{{ url_for('compras') }}"><i class="bi bi-calendar3 me-1"></i>Días de compra</a><a class="btn btn-outline-primary" href="{{ url_for('despachos') }}">Registrar despacho</a><a class="btn btn-outline-primary" href="{{ url_for('reportes_maquinas') }}"><i class="bi bi-bar-chart-line me-1"></i>Por máquina</a></div>
+    </div>
+  </div>
+  <div class="row g-3 mb-3">
+    <div class="col-md-4"><div class="stock-card stock-tank {{ 'stock-healthy' if stock_saludable else 'stock-alert' }}" style="--stock-level: {{ '%.2f'|format(stock_fill_pct) }}%;"><div class="stock-liquid" aria-hidden="true"></div><div class="stock-tank-content"><span>Stock actual</span><strong class="stock-value">{{ '%.1f'|format(stock_actual) }} L</strong><span>{{ 'Stock saludable' if stock_saludable else 'Alerta: stock bajo' }}</span></div></div></div>
+    <div class="col-md-4"><div class="stock-card"><span>Alerta de reposición</span><strong class="stock-value">{{ '%.1f'|format(stock_alert) }} L</strong><span class="text-muted">Mínimo saludable configurado</span></div></div>
+  </div>
+  <div class="stock-form mb-4">
+    <h5>Cargar stock saludable</h5>
+    <p class="text-muted mb-3">Defina el stock inicial y el mínimo que activa la alerta de combustible.</p>
+    <form method="post" action="{{ url_for('configurar_combustible') }}" class="row g-2 align-items-end">
+      <div class="col-md-4"><label class="form-label" for="stock_inicial">Stock inicial (L)</label><input class="form-control" id="stock_inicial" name="stock_inicial" type="number" min="0" step="0.1" value="{{ stock_inicial }}" required></div>
+      <div class="col-md-4"><label class="form-label" for="stock_alert">Stock saludable mínimo (L)</label><input class="form-control" id="stock_alert" name="stock_alert" type="number" min="0" step="0.1" value="{{ stock_alert }}" required></div>
+      <div class="col-md-4"><button class="btn btn-success w-100" type="submit">Guardar configuración</button></div>
+    </form>
+  </div>
+{% with messages = get_flashed_messages(with_categories=true) %}{% for category, message in messages %}<div class="alert alert-{{ 'danger' if category == 'error' else category }}">{{ message }}</div>{% endfor %}{% endwith %}
+<div class="dashboard-card mt-3">
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+      <h3 class="mb-0">Reporte de Consumo y Costo por Máquina</h3>
+      <p style="color: #666; font-size: 0.9rem; margin-top: 5px;">
+        Período: <strong>
+          {% if period == 'all' %}Total{% elif period == 'dia' %}Hoy{% elif period == 'semana' %}Últimos 7 días{% elif period == 'mes' %}Últimos 30 días{% elif fecha_desde or fecha_hasta %}Personalizado{% else %}Total{% endif %}
+        </strong>
+        {% if fecha_desde or fecha_hasta %}
+        <span class="ms-2 text-muted">{{ fecha_desde or '...' }} al {{ fecha_hasta or '...' }}</span>
+        {% endif %}
+      </p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap align-items-center">
+      <div class="btn-group" role="group">
+        <a href="{{ url_for('reportes', period='all') }}" class="btn btn-sm {{ 'btn-primary' if period == 'all' else 'btn-outline-primary' }}">Total</a>
+        <a href="{{ url_for('reportes', period='dia') }}" class="btn btn-sm {{ 'btn-primary' if period == 'dia' else 'btn-outline-primary' }}">Día</a>
+        <a href="{{ url_for('reportes', period='semana') }}" class="btn btn-sm {{ 'btn-primary' if period == 'semana' else 'btn-outline-primary' }}">Semana</a>
+        <a href="{{ url_for('reportes', period='mes') }}" class="btn btn-sm {{ 'btn-primary' if period == 'mes' else 'btn-outline-primary' }}">Mes</a>
+      </div>
+      <form class="d-flex gap-2 flex-wrap align-items-center" method="get" action="{{ url_for('reportes') }}">
+        <input type="date" class="form-control form-control-sm" name="fecha_desde" value="{{ fecha_desde or '' }}" aria-label="Fecha desde">
+        <input type="date" class="form-control form-control-sm" name="fecha_hasta" value="{{ fecha_hasta or '' }}" aria-label="Fecha hasta">
+        <button type="submit" class="btn btn-sm btn-primary">Filtrar</button>
+      </form>
+      <div class="btn-group" role="group">
+        <a href="{{ url_for('export_report_csv', period=period, fecha_desde=fecha_desde or '', fecha_hasta=fecha_hasta or '') }}" class="btn btn-sm btn-success">CSV</a>
+        <a href="{{ url_for('export_report_pdf', period=period, fecha_desde=fecha_desde or '', fecha_hasta=fecha_hasta or '') }}" class="btn btn-sm btn-danger" target="_blank">PDF General</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="report-kpis">
+    <div class="report-kpi report-kpi-machines">
+      <div class="report-kpi-top"><span class="report-kpi-label">Máquinas</span><span class="report-kpi-icon"><i class="bi bi-truck"></i></span></div>
+      <strong class="report-kpi-value">{{ resumen|length }}</strong><span class="report-kpi-context">Equipos con reporte</span>
+    </div>
+    <div class="report-kpi report-kpi-liters">
+      <div class="report-kpi-top"><span class="report-kpi-label">Litros totales</span><span class="report-kpi-icon"><i class="bi bi-droplet-half"></i></span></div>
+      <strong class="report-kpi-value">{{ '%.1f'|format(resumen|sum(attribute='total_litros')) }} L</strong><span class="report-kpi-context">Consumo acumulado</span>
+    </div>
+    <div class="report-kpi report-kpi-cost">
+      <div class="report-kpi-top"><span class="report-kpi-label">Costo estimado</span><span class="report-kpi-icon"><i class="bi bi-cash-stack"></i></span></div>
+      <strong class="report-kpi-value">{{ '%.0f'|format(resumen|sum(attribute='total_cost')) }} Gs</strong><span class="report-kpi-context">Según precio promedio</span>
+    </div>
+    <div class="report-kpi report-kpi-dispatches">
+      <div class="report-kpi-top"><span class="report-kpi-label">Despachos</span><span class="report-kpi-icon"><i class="bi bi-fuel-pump"></i></span></div>
+      <strong class="report-kpi-value">{{ resumen|sum(attribute='registros') }}</strong><span class="report-kpi-context">Cargas registradas</span>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-4">
+    <div class="col-lg-6">
+      <div class="dashboard-card chart-card">
+        <div class="chart-card-header">
+          <div><h5>Consumo por máquina</h5><p>Litros despachados en el período</p></div>
+          <span class="chart-marker consumo" aria-hidden="true"></span>
+        </div>
+        <div class="chart-frame"><canvas id="consumoChart"></canvas></div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="dashboard-card chart-card">
+        <div class="chart-card-header">
+          <div><h5>Costo por máquina</h5><p>Estimación según despachos registrados</p></div>
+          <span class="chart-marker costo" aria-hidden="true"></span>
+        </div>
+        <div class="chart-frame"><canvas id="costoChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  {% if selected_machine and selected_data %}
+  <div class="dashboard-card mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+      <div>
+        <h4 class="mb-1">Cargas detalladas de {{ selected_machine.nombre }}</h4>
+        <small class="text-muted">{{ selected_machine.tipo }} · Responsable: {{ selected_machine.responsable }}</small>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="{{ url_for('export_machine_pdf', equipo_id=selected_machine.id, period=period, fecha_desde=fecha_desde or '', fecha_hasta=fecha_hasta or '') }}" class="btn btn-sm btn-danger" target="_blank">PDF Máquina</a>
+        <a href="{{ url_for('reportes', period=period, fecha_desde=fecha_desde or '', fecha_hasta=fecha_hasta or '') }}" class="btn btn-sm btn-outline-secondary">Ver general</a>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-md-3"><div class="border rounded p-3"><strong>Total L:</strong><div class="h5 mb-0">{{ '{:,.1f}'.format(selected_data.total_litros) }}</div></div></div>
+      <div class="col-md-3"><div class="border rounded p-3"><strong>Costo:</strong><div class="h5 mb-0">{{ '{:,.0f}'.format(selected_data.total_cost) }} Gs</div></div></div>
+      <div class="col-md-3"><div class="border rounded p-3"><strong>Km:</strong><div class="h5 mb-0">{{ '{:,.0f}'.format(selected_data.kilometraje_total) }}</div></div></div>
+      <div class="col-md-3"><div class="border rounded p-3"><strong>Despachos:</strong><div class="h5 mb-0">{{ selected_data.registros }}</div></div></div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-striped align-middle">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Litros</th>
+            <th>Responsable</th>
+            <th>Chofer</th>
+            <th>Hora</th>
+            <th>Horómetro</th>
+            <th>Kilometraje</th>
+            <th>Tipo de carga</th>
+            <th>Observación</th>
+            <th>PDF</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for despacho in historial_equipo %}
+          <tr>
+            <td>{{ despacho.fecha.strftime('%d/%m/%Y') if despacho.fecha else 'Sin fecha' }}</td>
+            <td>{{ '%.1f'|format(despacho.litros) }} L</td>
+            <td>{{ despacho.responsable }}</td>
+            <td>{{ despacho.nombre_chofer or '-' }}</td>
+            <td>{{ '%.2f'|format(despacho.hora or 0) }} h</td>
+            <td>{{ '%.2f'|format(despacho.horometro or 0) }} h</td>
+            <td>{{ '%.0f'|format(despacho.kilometraje or 0) }} km</td>
+            <td>{{ despacho.tipo_carga or 'Media' }}</td>
+            <td>{{ despacho.observacion or '-' }}</td>
+            <td><a href="{{ url_for('pdf_despacho', despacho_id=despacho.id) }}" class="btn btn-sm btn-outline-danger" target="_blank">PDF</a></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="10" class="text-center text-muted">Sin despachos para esta máquina en el período seleccionado</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <section id="reportes-maquinas" class="dashboard-card mt-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+      <div>
+        <h4 class="mb-1">Resumen de consumo por máquina</h4>
+        <p class="text-muted mb-0">Compare litros, costos, rendimiento y kilometraje del período seleccionado.</p>
+      </div>
+      <span class="badge rounded-pill text-bg-light">{{ resumen|length }} máquina(s)</span>
+    </div>
+  <div class="table-responsive">
+    <table class="table table-striped align-middle" style="font-size: 0.95rem;">
+      <thead style="background-color: #f8f9fa;">
+        <tr>
+          <th style="font-weight: bold;">Máquina</th>
+          <th style="font-weight: bold;">Total (L)</th>
+          <th style="font-weight: bold;">L/Hora</th>
+          <th style="font-weight: bold;">L/Despacho</th>
+          <th style="font-weight: bold;">Costo</th>
+          <th style="font-weight: bold;">Costo/Hora</th>
+          <th style="font-weight: bold;">Km</th>
+          <th style="font-weight: bold;">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in resumen %}
+        <tr style="border-bottom: 1px solid #ddd;">
+          <td style="font-weight: bold;">{{ item.equipo.nombre }}</td>
+          <td><span style="background-color: #e7f3ff; padding: 5px 10px; border-radius: 5px;">{{ '{:,.1f}'.format(item.total_litros) }} L</span></td>
+          <td>{{ '{:,.3f}'.format(item.consumo_hora) }} L/h</td>
+          <td>{{ '{:,.1f}'.format(item.consumo_promedio) }} L</td>
+          <td><span style="color: #28a745; font-weight: bold;">{{ '{:,.0f}'.format(item.total_cost) }} Gs</span></td>
+          <td><span style="color: #dc3545;">{{ '{:,.0f}'.format(item.costo_hora) }} Gs/h</span></td>
+          <td>{{ '{:,.0f}'.format(item.kilometraje_total) }} km</td>
+          <td>
+            <div class="d-flex gap-2">
+              <a href="{{ url_for('reportes', period=period, equipo_id=item.equipo.id, fecha_desde=fecha_desde or '', fecha_hasta=fecha_hasta or '') }}" class="btn btn-sm btn-outline-primary">Ver</a>
+              <a href="{{ url_for('export_machine_pdf', equipo_id=item.equipo.id, period=period, fecha_desde=fecha_desde or '', fecha_hasta=fecha_hasta or '') }}" class="btn btn-sm btn-outline-danger" target="_blank">PDF</a>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="text-center text-muted" style="padding: 30px;">Sin registros para el período seleccionado</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div style="margin-top: 20px; padding: 15px; background-color: #f0f8ff; border-left: 4px solid #0066cc; border-radius: 5px;">
+    <p style="margin: 0; font-size: 0.9rem; color: #333;">
+      <strong>Nota:</strong> El consumo y costo se calculan automáticamente según los despachos registrados y el precio promedio de compra de combustible.
+    </p>
+  </div>
+  </section>
+</div>
+
+<script>
+  const chartData = {{ chart_data | tojson }};
+  const chartFont = "Segoe UI, Tahoma, Geneva, Verdana, sans-serif";
+  const numberFormat = new Intl.NumberFormat('es-PY', { maximumFractionDigits: 0 });
+  const axisGrid = 'rgba(23, 61, 82, 0.08)';
+  const axisText = '#71838d';
+  const commonChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { intersect: false, mode: 'index' },
+    layout: { padding: { top: 4, right: 8, bottom: 0, left: 4 } },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#12344a',
+        titleFont: { family: chartFont, size: 12, weight: '700' },
+        bodyFont: { family: chartFont, size: 12 },
+        padding: 12,
+        cornerRadius: 10,
+        displayColors: false,
+        callbacks: { label: (context) => `${context.dataset.label}: ${numberFormat.format(context.parsed.y)}` }
+      }
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: { color: axisText, font: { family: chartFont, size: 11 }, maxRotation: 0, autoSkip: true }
+      },
+      y: {
+        beginAtZero: true,
+        border: { display: false },
+        grid: { color: axisGrid, drawTicks: false },
+        ticks: { color: axisText, padding: 8, font: { family: chartFont, size: 11 }, callback: (value) => numberFormat.format(value) }
+      }
+    }
+  };
+  const consumoCtx = document.getElementById('consumoChart');
+  new Chart(consumoCtx, {
+    type: 'bar',
+    data: {
+      labels: chartData.labels,
+      datasets: [{
+        label: 'Consumo total (L)',
+        data: chartData.litros,
+        backgroundColor: 'rgba(8, 126, 139, 0.82)',
+        hoverBackgroundColor: '#075e68',
+        borderColor: '#087e8b',
+        borderWidth: 1,
+        borderRadius: 7,
+        borderSkipped: false,
+      }]
+    },
+    options: commonChartOptions
+  });
+
+  const costoCtx = document.getElementById('costoChart');
+  new Chart(costoCtx, {
+    type: 'line',
+    data: {
+      labels: chartData.labels,
+      datasets: [{
+        label: 'Costo total (Gs)',
+        data: chartData.costos,
+        borderColor: '#d97706',
+        backgroundColor: 'rgba(217, 119, 6, 0.12)',
+        pointBackgroundColor: '#ffffff',
+        pointBorderColor: '#d97706',
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        borderWidth: 3,
+        fill: true,
+        tension: 0.35,
+      }]
+    },
+    options: commonChartOptions
+  });
+
+  setInterval(function() {
+    window.location.reload();
+  }, 30000);
+</script>
+{% endblock %}

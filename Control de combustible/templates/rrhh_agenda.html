@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4"><div><div class="text-uppercase small fw-semibold text-primary">Recursos Humanos</div><h1 class="mb-1">Agenda y calendario</h1><p class="text-muted mb-0">Planifique tareas, recordatorios, reuniones y capacitaciones.</p></div><a class="btn btn-outline-secondary" href="{{ url_for('rrhh') }}"><i class="bi bi-arrow-left me-1"></i>Volver a RRHH</a></div>
+  {% with messages = get_flashed_messages(with_categories=true) %}{% for category, message in messages %}<div class="alert alert-{{ 'danger' if category == 'error' else category }}">{{ message }}</div>{% endfor %}{% endwith %}
+  <div class="row g-4">
+    <div class="col-lg-4"><div class="card border-0 shadow-sm"><div class="card-body p-4"><h2 class="h5">Nuevo evento</h2><form method="post" class="row g-3">
+      <div class="col-12"><label class="form-label">Título</label><input class="form-control" name="titulo" required></div>
+      <div class="col-md-6"><label class="form-label">Tipo</label><select class="form-select" name="tipo"><option>Tarea</option><option>Recordatorio</option><option>Reunion</option><option>Aviso</option><option>Capacitacion</option><option>Otro</option></select></div>
+      <div class="col-md-6"><label class="form-label">Estado</label><input class="form-control" value="Pendiente" disabled></div>
+      <div class="col-12"><label class="form-label">Inicio</label><input class="form-control" type="datetime-local" name="inicio" required></div>
+      <div class="col-12"><label class="form-label">Fin</label><input class="form-control" type="datetime-local" name="fin"></div>
+      <div class="col-12"><label class="form-label">Colaborador</label><select class="form-select" name="colaborador_id"><option value="">Sin asignar</option>{% for colaborador in colaboradores %}<option value="{{ colaborador.id }}">{{ colaborador.nombre }}</option>{% endfor %}</select></div>
+      <div class="col-12"><label class="form-label">Responsable</label><select class="form-select" name="responsable_usuario_id"><option value="">Sin responsable</option>{% for supervisor in supervisores %}<option value="{{ supervisor.id }}">{{ supervisor.full_name }}</option>{% endfor %}</select></div>
+      <div class="col-12"><label class="form-label">Lugar</label><input class="form-control" name="lugar"></div><div class="col-12"><label class="form-label">Notas</label><textarea class="form-control" name="notas" rows="3"></textarea></div>
+      <div class="col-12 form-check ms-2"><input class="form-check-input" type="checkbox" name="notificar" value="SI" id="notificar"><label class="form-check-label" for="notificar">Notificar al responsable</label></div>
+      <div class="col-12"><button class="btn btn-primary w-100" type="submit"><i class="bi bi-calendar-plus me-1"></i>Agendar evento</button></div>
+    </form></div></div></div>
+    <div class="col-lg-8"><div class="card border-0 shadow-sm"><div class="card-body p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3"><a class="btn btn-sm btn-outline-secondary" href="{{ url_for('rrhh_agenda', year=anterior.year, month=anterior.month) }}"><i class="bi bi-chevron-left"></i></a><h2 class="h5 mb-0">{{ mes_actual.strftime('%B %Y')|capitalize }}</h2><a class="btn btn-sm btn-outline-secondary" href="{{ url_for('rrhh_agenda', year=siguiente.year, month=siguiente.month) }}"><i class="bi bi-chevron-right"></i></a></div>
+      <div class="table-responsive"><table class="table table-bordered align-top" style="table-layout:fixed"><thead><tr>{% for dia in ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'] %}<th class="small text-center">{{ dia }}</th>{% endfor %}</tr></thead><tbody>{% for semana in dias|batch(7) %}<tr>{% for dia in semana %}<td style="height:105px">{% if dia %}<div class="fw-semibold small">{{ dia.day }}</div>{% for evento in eventos if evento.inicio.date() == dia %}<div class="small text-truncate mt-1 p-1 rounded bg-primary-subtle" title="{{ evento.titulo }}">{{ evento.inicio.strftime('%H:%M') }} {{ evento.titulo }}</div>{% endfor %}{% endif %}</td>{% endfor %}</tr>{% endfor %}</tbody></table></div>
+      <h3 class="h6 mt-4">Próximos eventos</h3><div class="list-group list-group-flush">{% for evento in eventos[:10] %}<a class="list-group-item list-group-item-action px-0" href="{{ url_for('rrhh_agenda_editar', evento_id=evento.id) }}"><div class="d-flex justify-content-between"><span class="fw-semibold">{{ evento.titulo }}</span><span class="small text-muted">{{ evento.inicio.strftime('%d/%m/%Y %H:%M') }}</span></div><div class="small text-muted">{{ evento.tipo }} · {{ evento.estado }}</div></a>{% else %}<div class="text-muted small py-3">No hay eventos para mostrar.</div>{% endfor %}</div>
+    </div></div></div>
+  </div>
+</div>
+{% endblock %}

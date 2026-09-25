@@ -1,0 +1,72 @@
+{% extends "layout.html" %}
+{% block content %}
+<style>
+  body:has(.inventory-home), .dashboard-shell:has(.inventory-home) { max-width: none; }
+  .dashboard-shell:has(.inventory-home) { padding-right: 0; padding-left: 0; }
+  .dashboard-content:has(.inventory-home) { padding-top: 0; background: #f4f7f8; }
+  .inventory-home { position: relative; max-width: none; min-height: calc(100vh - 32px); margin: 0 0 -32px; padding: 2rem max(2rem, calc((100vw - 1220px) / 2)) 4rem; overflow: hidden; color: #24323b; background: #f4f7f8; }
+  .inventory-home::before { content: "DEPÓSITO / INVENTARIO"; position: absolute; top: 1rem; right: max(2rem, calc((100vw - 1220px) / 2)); color: #a0adb2; font-size: .62rem; font-weight: 700; letter-spacing: .16em; }
+  .inventory-hero { position: relative; overflow: hidden; padding: 1.8rem 2rem; border: 1px solid #d6e0e3; border-radius: 12px; background: #fff; color: #24323b; box-shadow: 0 10px 24px rgba(31, 52, 61, .07); }
+  .inventory-hero::after { content: ""; position: absolute; right: 0; bottom: 0; width: 34%; height: 3px; background: #397b78; }
+  .inventory-hero-content { position: relative; z-index: 1; display: flex; align-items: flex-start; justify-content: space-between; gap: 1.5rem; }
+  .inventory-kicker { margin-bottom: .55rem; color: #397b78; font-size: .68rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+  .inventory-hero h1 { margin: 0; color: #203944; font-size: clamp(2rem, 4vw, 2.8rem); font-weight: 750; letter-spacing: -.02em; }
+  .inventory-hero p { max-width: 650px; margin: .55rem 0 0; color: #718086; }
+  .inventory-hero-actions { display: flex; align-items: center; justify-content: flex-end; gap: .45rem; flex-wrap: wrap; }
+  .inventory-hero .back-button { color: #48636d; border-color: #cbd8dc; background: #fff; }
+  .inventory-hero .logout-link, .inventory-hero .header-menu { color: #48636d; border-color: #cbd8dc; background: #fff; }
+  .inventory-hero .logout-link:hover, .inventory-hero .header-menu:hover { color: #203944; background: #edf3f3; }
+  .inventory-section-title { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin: 2rem 0 .8rem; }
+  .inventory-section-title h2 { margin: 0; color: #294753; font-size: 1.02rem; font-weight: 750; letter-spacing: .02em; }
+  .inventory-section-title span { color: #89989e; font-size: .75rem; }
+  .inventory-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .85rem; margin-top: 1.15rem; }
+  .inventory-kpi { padding: 1rem 1.1rem; border: 1px solid #dce7eb; border-radius: 11px; background: #fff; box-shadow: 0 6px 16px rgba(31,65,88,.055); }
+  .inventory-kpi small { color: #718096; font-size: .78rem; }
+  .inventory-kpi strong { display: block; margin-top: .25rem; color: #174b59; font-size: 1.55rem; }
+  .inventory-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .85rem; }
+  .inventory-action { display: flex; align-items: center; gap: .95rem; min-height: 96px; padding: 1.05rem; border: 1px solid #d9e3e5; border-radius: 10px; background: #fff; color: #263a43; text-decoration: none; box-shadow: 0 6px 16px rgba(31, 65, 88, .055); transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+  .inventory-action:hover { color: #203944; transform: translateY(-2px); border-color: #8fb9b5; box-shadow: 0 12px 22px rgba(31, 65, 88, .11); }
+  .inventory-action .action-icon { display: grid; place-items: center; width: 43px; height: 43px; flex: 0 0 43px; border-radius: 9px; color: #fff; background: #397b78; font-size: 1.15rem; }
+  .inventory-action.action-gold .action-icon { background: #9b741f; }
+  .inventory-action.action-blue .action-icon { background: #416e91; }
+  .inventory-action h3 { margin: 0; color: #263a43; font-size: .94rem; font-weight: 750; }
+  .inventory-action p { margin: .3rem 0 0; color: #76868c; font-size: .78rem; line-height: 1.4; }
+  .inventory-bottom { display: grid; grid-template-columns: 1.15fr 1.85fr; gap: .85rem; }
+  .inventory-panel { padding: 1.15rem; border: 1px solid #d9e3e5; border-radius: 10px; background: #fff; box-shadow: 0 6px 16px rgba(31, 65, 88, .055); }
+  .inventory-panel h3 { margin: 0 0 .8rem; color: #294753; font-size: .98rem; }
+  .category-row { display: flex; justify-content: space-between; gap: 1rem; padding: .6rem 0; border-bottom: 1px solid #edf1f2; color: #60747b; font-size: .83rem; }
+  .category-row:last-child { border-bottom: 0; }
+  .category-row strong { color: #397b78; }
+  .inventory-table { margin: 0; }
+  .inventory-table .table { --bs-table-bg: transparent; --bs-table-color: #60747b; --bs-table-hover-bg: #f3f7f7; --bs-table-hover-color: #294753; }
+  .inventory-table th { color: #71858b; font-size: .7rem; font-weight: 800; text-transform: uppercase; }
+  .inventory-table td { color: #60747b; font-size: .82rem; border-color: #edf1f2; }
+  @media (max-width: 900px) { .inventory-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .inventory-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .inventory-bottom { grid-template-columns: 1fr; } }
+  @media (max-width: 620px) { .inventory-hero-content { flex-direction: column; } .inventory-hero-actions { justify-content: flex-start; } .inventory-hero h1 { font-size: 1.85rem; } .inventory-grid, .inventory-kpis { grid-template-columns: 1fr; } }
+</style>
+<div class="inventory-home">
+  <header class="inventory-hero"><div class="inventory-hero-content"><div><div class="inventory-kicker">IGP Metales · Abastecimiento</div><h1>Panel de Depósito</h1><p>Organice insumos, existencias, movimientos y pedidos desde un único centro de control.</p></div><div class="inventory-hero-actions"><a class="back-button" href="{{ url_for('admin_dashboard') }}"><i class="bi bi-arrow-left me-1"></i>Volver al panel</a><div class="dropdown"><button class="logout-link" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Cuenta"><i class="bi bi-person-circle"></i><span class="d-none d-md-inline">Cuenta</span></button><ul class="dropdown-menu dropdown-menu-end"><li><span class="dropdown-item-text"><strong>{{ current_user.full_name }}</strong><br><small>@{{ current_user.username }}</small></span></li></ul></div><a class="logout-link" href="{{ url_for('logout') }}" title="Cerrar sesión"><i class="bi bi-box-arrow-right"></i><span class="d-none d-md-inline">Cerrar sesión</span></a><button class="header-menu" type="button" aria-label="Acciones"><span></span></button></div></div></header>
+  <div class="inventory-section-title"><h2>Operación diaria</h2><span>Gestión de existencias</span></div>
+  <section class="inventory-grid" aria-label="Operación diaria">
+    <a class="inventory-action" href="{{ url_for('inventario_insumos') }}"><span class="action-icon"><i class="bi bi-box-seam"></i></span><span><h3>Insumos y productos</h3><p>Crear, consultar y editar los insumos registrados.</p></span></a>
+    <a class="inventory-action action-gold" href="{{ url_for('inventario_entradas') }}"><span class="action-icon"><i class="bi bi-box-arrow-in-down"></i></span><span><h3>Registrar entrada</h3><p>Ingresar compras, recepciones y reposiciones.</p></span></a>
+    <a class="inventory-action action-blue" href="{{ url_for('inventario_salidas') }}"><span class="action-icon"><i class="bi bi-box-arrow-up"></i></span><span><h3>Registrar salida</h3><p>Registrar entregas y retiros de materiales.</p></span></a>
+    <a class="inventory-action" href="{{ url_for('inventario_pedidos') }}"><span class="action-icon"><i class="bi bi-clipboard-check"></i></span><span><h3>Pedidos de inventario</h3><p>Revisar pedidos recibidos y enviarlos a compras.</p></span></a>
+    <a class="inventory-action action-blue" href="{{ url_for('inventario_categorias') }}"><span class="action-icon"><i class="bi bi-tags"></i></span><span><h3>Categorías</h3><p>Ordenar y mantener clasificados los insumos.</p></span></a>
+  </section>
+  <div class="inventory-section-title"><h2>Control y reportes</h2><span>Consulta y seguimiento</span></div>
+  <section class="inventory-grid" aria-label="Control y reportes">
+    <a class="inventory-action" href="{{ url_for('reporte_existencias') }}"><span class="action-icon"><i class="bi bi-bar-chart-line"></i></span><span><h3>Reporte de existencias</h3><p>Consultar stock, mínimos y productos a reponer.</p></span></a>
+    <a class="inventory-action action-blue" href="{{ url_for('pdf_reporte_existencias') }}"><span class="action-icon"><i class="bi bi-file-earmark-pdf"></i></span><span><h3>Reporte PDF</h3><p>Generar un informe descargable de existencias.</p></span></a>
+    <a class="inventory-action" href="{{ url_for('reporte_retiros') }}"><span class="action-icon"><i class="bi bi-person-lines-fill"></i></span><span><h3>Historial de retiros</h3><p>Consultar qué retiró cada colaborador y cuándo.</p></span></a>
+    <a class="inventory-action action-gold" href="{{ url_for('reporte_categorias') }}"><span class="action-icon"><i class="bi bi-tags"></i></span><span><h3>Reporte por categorías</h3><p>Comparar stock, insumos y alertas por categoría.</p></span></a>
+    <a class="inventory-action action-blue" href="{{ url_for('reporte_vencimientos') }}"><span class="action-icon"><i class="bi bi-calendar2-x"></i></span><span><h3>Productos por vencer</h3><p>Detectar productos vencidos o próximos a vencer.</p></span></a>
+    <a class="inventory-action action-gold" href="{{ url_for('deduccion_inventario') }}"><span class="action-icon"><i class="bi bi-hourglass-split"></i></span><span><h3>Consumo y duración estimada</h3><p>Calcular el ritmo de uso y los días de stock restante.</p></span></a>
+  </section>
+  <div class="inventory-section-title"><h2>Vista rápida</h2><span>Información reciente</span></div>
+  <section class="inventory-bottom">
+    <div class="inventory-panel"><h3>Stock por categoría</h3>{% for category in category_data %}<div class="category-row"><span>{{ category.nombre }}</span><strong>{{ '%.2f'|format(category.stock) }}</strong></div>{% else %}<p class="text-muted small mb-0">No hay categorías con existencias.</p>{% endfor %}</div>
+    <div class="inventory-panel"><h3>Últimos movimientos</h3><div class="table-responsive inventory-table"><table class="table table-hover align-middle mb-0"><thead><tr><th>Fecha</th><th>Movimiento</th><th>Insumo</th><th>Cantidad</th></tr></thead><tbody>{% for movimiento in movimientos %}<tr><td>{{ movimiento.fecha.strftime('%d/%m/%Y %H:%M') }}</td><td>{% if movimiento.tipo == 'Entrada' %}<span class="badge text-bg-success">Entrada</span>{% else %}<span class="badge text-bg-warning">Salida</span>{% endif %}</td><td>{{ movimiento.nombre }}</td><td>{{ '%.2f'|format(movimiento.cantidad) }} {{ movimiento.unidad }}</td></tr>{% else %}<tr><td colspan="4" class="text-center text-muted py-4">No hay movimientos registrados.</td></tr>{% endfor %}</tbody></table></div></div>
+  </section>
+</div>
+{% endblock %}

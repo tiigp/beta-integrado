@@ -1,0 +1,115 @@
+Requisitos mínimos recomendados
+1. PC servidor
+El sistema actualmente está configurado para ejecutarse en Windows con:
+
+Windows 10 u 11, 64 bits.
+Procesador: Intel Core i3 o equivalente.
+Memoria RAM: 4 GB mínimo; 8 GB recomendado.
+Espacio libre: 10 GB mínimo, especialmente por PDFs, imágenes y respaldos.
+Python 3.14.4.
+Conexión de red estable.
+Puerto local 5000 disponible.
+Tailscale instalado y conectado para acceder mediante 100.90.6.40.
+Permisos para ejecutar PowerShell y mantener el servicio activo.
+Dependencias principales instaladas actualmente:
+
+Flask 3.0.3
+Flask-Login 0.6.3
+Flask-SQLAlchemy 3.1.1
+SQLAlchemy 2.0.51
+ReportLab 4.2.0
+openpyxl 3.1.5
+xlrd 2.0.2
+Pillow 12.3.0
+qrcode
+El servidor usa SQLite local en:
+
+Control de combustible/instance/combustible.db
+
+Conviene mantener copias de seguridad periódicas de esa carpeta.
+
+2. PC o notebook cliente
+Para usuarios que acceden al sistema:
+
+Windows 10/11, Linux, macOS o ChromeOS.
+2 GB de RAM mínimo; 4 GB recomendado.
+Navegador actualizado:
+Google Chrome
+Microsoft Edge
+Firefox
+Safari en macOS/iPhone/iPad
+Resolución mínima: 1280 × 720.
+Recomendado: 1366 × 768 o superior.
+Conexión a la misma red o acceso mediante Tailscale.
+JavaScript y cookies habilitados.
+El usuario no necesita instalar Python ni la base de datos. Solo necesita abrir:
+
+http://100.90.6.40:5000
+
+3. Tablets
+Recomendado:
+
+Android 9 o superior con Chrome actualizado.
+iPadOS 15 o superior con Safari o Chrome.
+Mínimo 3 GB de RAM.
+Pantalla mínima aproximada de 8 pulgadas.
+Orientación horizontal para reportes y tablas grandes.
+Orientación vertical para formularios simples.
+El módulo funciona en tablet, aunque algunas tablas y reportes pueden requerir desplazamiento horizontal.
+
+4. Celulares
+Compatible con:
+
+Android 9 o superior.
+iPhone con iOS 15 o superior.
+Chrome o Safari actualizado.
+Mínimo 2 GB de RAM.
+Pantalla de 5,5 pulgadas o superior recomendada.
+En celular funcionarán correctamente:
+
+Login.
+Registro de compras.
+Registro de despachos.
+Consultas simples.
+Reportes básicos.
+Historial.
+Para tareas administrativas, PDFs, reportes extensos y tablas grandes es más cómodo usar PC o tablet.
+
+5. Báscula USB/Serial
+El módulo Báscula puede leer dispositivos compatibles con Web Serial. Para eso se necesita:
+
+Google Chrome o Microsoft Edge actualizado.
+Conexión USB o adaptador USB-Serial.
+Báscula configurada normalmente a 9600 baudios.
+Permiso del navegador para acceder al puerto serial.
+Preferentemente una PC o notebook.
+La lectura USB puede no estar disponible en:
+
+iPhone.
+iPad.
+Firefox.
+Algunos navegadores móviles.
+Navegadores con restricciones de seguridad.
+En esos dispositivos se puede ingresar el peso manualmente.
+
+6. Red y acceso remoto
+Para que otros equipos accedan:
+
+El servidor debe estar encendido.
+Python debe estar ejecutándose.
+Tailscale debe estar conectado.
+Los usuarios deben estar en la red autorizada de Tailscale.
+El puerto 5000 debe estar accesible.
+La dirección actual es:
+
+http://100.90.6.40:5000
+
+Recomendación práctica
+Para el uso diario:
+
+Servidor: PC con 8 GB RAM y conexión cableada.
+Administración: notebook o PC.
+Registro de despacho: tablet Android.
+Registro de báscula USB: PC o notebook.
+Consultas rápidas: celular.
+Respaldos: copia diaria de instance, Reports e Imagen.

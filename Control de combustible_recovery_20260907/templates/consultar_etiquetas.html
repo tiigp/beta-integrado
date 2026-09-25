@@ -1,0 +1,91 @@
+{% extends 'layout.html' %}
+{% block content %}
+<style>
+  .labels-header { background: linear-gradient(135deg, #eff6ff, #ffffff); border: 1px solid #dfeaf8; border-radius: 18px; padding: 1.3rem 1.4rem; }
+  .labels-panel { border: 1px solid #e5edf7; border-radius: 18px; background: #fff; }
+  .labels-table th { white-space: nowrap; font-size: .75rem; text-transform: uppercase; color: #52657d; }
+  .labels-table td { white-space: nowrap; }
+  .labels-count { color: #52657d; font-size: .9rem; }
+  .product-tables-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; align-items: start; }
+  .product-table-section { min-width: 0; border: 1px solid #dbe5ef; border-radius: 8px; padding: .55rem; background: #fff; }
+  .product-table-section .table-responsive { overflow-x: auto; }
+  .product-table-section .labels-table { font-size: .72rem; }
+  .product-table-section .labels-table th, .product-table-section .labels-table td { padding: .38rem .3rem; }
+  .product-table-section .btn { font-size: .7rem; padding: .2rem .4rem; }
+  @media (max-width: 1100px) { .product-tables-grid { grid-template-columns: 1fr; } }
+</style>
+
+<div class="labels-header mb-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div>
+      <div class="small text-uppercase text-primary fw-semibold">Gestión de Calidad y Conformidad › Consulta</div>
+      <h2 class="mb-1">Consultar etiquetas</h2>
+      <p class="mb-0 text-muted">Busque y descargue las etiquetas generadas.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{{ url_for('quality_dashboard') }}"><i class="bi bi-grid me-2"></i>Volver a Gestión de Calidad</a>
+    <a class="btn btn-primary" href="{{ url_for('quality_dashboard', show='nueva') }}">
+      <i class="bi bi-plus-circle me-2"></i>Nueva etiqueta
+    </a>
+  </div>
+  <div class="d-flex flex-wrap align-items-center gap-2 mt-3 pt-3 border-top">
+    <a class="btn btn-outline-success" href="{{ url_for('descargar_respaldo_calidad') }}"><i class="bi bi-download me-2"></i>Descargar respaldo</a>
+    <form method="post" action="{{ url_for('restaurar_respaldo_calidad') }}" enctype="multipart/form-data" class="d-flex flex-wrap align-items-center gap-2">
+      <label class="btn btn-outline-warning mb-0"><i class="bi bi-upload me-2"></i>Seleccionar respaldo<input type="file" name="respaldo" accept=".zip,application/zip" required hidden></label>
+      <button class="btn btn-warning" type="submit" onclick="return confirm('La restauración reemplazará las etiquetas y certificados actuales. ¿Continuar?');"><i class="bi bi-arrow-counterclockwise me-2"></i>Restaurar</button>
+    </form>
+  </div>
+  {% if current_user.is_admin %}
+  <div class="d-flex flex-wrap align-items-center gap-2 mt-3 pt-3 border-top">
+    <a class="btn btn-primary" href="{{ url_for('descargar_respaldo_completo') }}"><i class="bi bi-database-down me-2"></i>Descargar respaldo completo</a>
+    <form method="post" action="{{ url_for('restaurar_respaldo_completo') }}" enctype="multipart/form-data" class="d-flex flex-wrap align-items-center gap-2">
+      <label class="btn btn-outline-primary mb-0"><i class="bi bi-database-up me-2"></i>Seleccionar respaldo completo<input type="file" name="respaldo_completo" accept=".zip,application/zip" required hidden></label>
+      <button class="btn btn-danger" type="submit" onclick="return confirm('La restauración reemplazará toda la base de datos y los archivos respaldados. ¿Continuar?');"><i class="bi bi-arrow-repeat me-2"></i>Restaurar base completa</button>
+    </form>
+  </div>
+  {% endif %}
+</div>
+
+<div class="labels-panel p-4">
+  <form method="get" class="row g-3 mb-4" id="labelsFilterForm">
+    <div class="col-md-4">
+      <label class="form-label" for="tipo_producto">Filtrar por tipo</label>
+      <select class="form-select" id="tipo_producto" name="tipo_producto">
+        <option value="">Todos los tipos</option>
+        <option value="VarillasLisas" {{ 'selected' if tipo_producto == 'VarillasLisas' }}>Varillas Lisas</option>
+        <option value="AP500S" {{ 'selected' if tipo_producto == 'AP500S' }}>AP500 S</option>
+        <option value="Palanquillas" {{ 'selected' if tipo_producto == 'Palanquillas' }}>Palanquillas</option>
+      </select>
+    </div>
+    <div class="col-md-5">
+      <label class="form-label" for="colada">Buscar colada</label>
+      <input class="form-control" id="colada" name="colada" value="{{ colada }}" placeholder="Escriba la colada..." autocomplete="off">
+    </div>
+    <div class="col-md-3 d-flex align-items-end gap-2">
+      <button class="btn btn-primary flex-fill" type="submit"><i class="bi bi-search me-2"></i>Filtrar</button>
+      <a class="btn btn-outline-secondary" href="{{ url_for('consultar_etiquetas_qality') }}" title="Limpiar filtros"><i class="bi bi-x-lg"></i></a>
+    </div>
+  </form>
+
+  <div class="d-flex justify-content-between align-items-center mb-2"><span class="labels-count"><span id="visibleLabels">{{ etiquetas|length }}</span> etiqueta(s) encontrada(s)</span><span class="small text-muted">La búsqueda filtra las tres tablas</span></div>
+  {% macro label_table(title, rows) %}
+  <section class="product-table-section"><div class="d-flex justify-content-between align-items-center mb-1"><h6 class="mb-0">{{ title }}</h6><span class="badge text-bg-light">{{ rows|length }}</span></div><div class="table-responsive"><table class="table table-hover table-sm align-middle labels-table mb-0"><thead><tr><th>Número</th><th>Colada</th><th>Medida</th><th>Longitud</th><th>Peso</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>{% for etiqueta in rows %}<tr data-label-row data-colada="{{ etiqueta.colada|lower }}"><td class="fw-semibold">ETQ-{{ '%07d'|format(etiqueta.id) }}</td><td>{{ etiqueta.colada }}</td><td>{{ etiqueta.medida or '-' }}</td><td>{{ etiqueta.longitud or '-' }}</td><td>{{ etiqueta.peso or '-' }}</td><td><span class="badge {{ 'text-bg-danger' if etiqueta.no_conforme else 'text-bg-warning' if etiqueta.tipo_b else 'text-bg-success' if etiqueta.aprobado else 'text-bg-secondary' }}">{{ 'Retenida' if etiqueta.no_conforme else 'Tipo B' if etiqueta.tipo_b else 'Aprobada' if etiqueta.aprobado else 'Registrada' }}</span></td><td><div class="d-flex gap-1"><a class="btn btn-sm btn-outline-primary" href="{{ url_for('vista_previa_etiqueta_qality', etiqueta_id=etiqueta.id) }}" target="_blank" rel="noopener" title="Vista previa"><i class="bi bi-eye"></i></a><a class="btn btn-sm btn-outline-secondary" href="{{ url_for('editar_etiqueta_qality', etiqueta_id=etiqueta.id) }}" title="Editar"><i class="bi bi-pencil"></i></a><form method="post" action="{{ url_for('eliminar_etiqueta_qality', etiqueta_id=etiqueta.id) }}" onsubmit="return confirm('¿Eliminar esta etiqueta? Esta acción no se puede deshacer.');"><button class="btn btn-sm btn-outline-danger" type="submit" title="Eliminar"><i class="bi bi-trash"></i></button></form></div></td></tr>{% else %}<tr><td colspan="7" class="text-center text-muted py-3">No hay registros.</td></tr>{% endfor %}</tbody></table></div></section>
+  {% endmacro %}
+  <div class="product-tables-grid">{{ label_table('Palanquillas', palanquillas) }}{{ label_table('AP500 S · producto final', ap500s) }}{{ label_table('Varillas Lisas · producto final', varillas_lisas) }}</div>
+</div>
+
+<script>
+  const coladaInput = document.getElementById('colada');
+  const rows = Array.from(document.querySelectorAll('[data-label-row]'));
+  const visibleLabels = document.getElementById('visibleLabels');
+  coladaInput.addEventListener('input', function () {
+    const value = this.value.trim().toLowerCase();
+    let visible = 0;
+    rows.forEach(function (row) {
+      const matches = row.dataset.colada.includes(value);
+      row.hidden = !matches;
+      if (matches) visible += 1;
+    });
+    visibleLabels.textContent = visible;
+  });
+</script>
+{% endblock %}

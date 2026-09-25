@@ -1,0 +1,98 @@
+{% extends 'layout.html' %}
+{% block content %}
+<style>
+  .purchase-request-card { border: 1px solid #dbe5ec; border-radius: 10px; background: #fff; }
+  .purchase-request-card + .purchase-request-card { margin-top: 1rem; }
+  .purchase-request-header { background: #f5f9fb; border-bottom: 1px solid #e3ebf0; }
+  .quote-row { border: 1px solid #e1e8ed; border-radius: 8px; padding: .75rem; background: #fbfcfd; }
+  .quote-row + .quote-row { margin-top: .6rem; }
+  .quote-document { min-width: 190px; }
+  .quote-summary { min-width: 260px; }
+</style>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+  <div>
+    <div class="small text-uppercase text-primary fw-semibold">Dashboard / Compras / Solicitudes</div>
+    <h2 class="mb-1">Gestión de presupuestos</h2>
+    <p class="small-muted mb-0">Revise las solicitudes enviadas a presupuestos, cargue sus documentos y remita a Gerencia las que estén completas.</p>
+  </div>
+  <a class="btn btn-outline-secondary" href="{{ url_for('modulo_compras') }}"><i class="bi bi-arrow-left me-1"></i>Volver a Compras</a>
+</div>
+
+<div class="alert alert-warning d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4"><span><i class="bi bi-shield-check me-1"></i>Las solicitudes autorizadas por el filtro se revisan primero en el Centro de Compras para definir compra directa o presupuestos.</span><a class="btn btn-sm btn-outline-dark" href="{{ url_for('modulo_compras') }}">Ver solicitudes autorizadas</a></div>
+
+{% if pendientes_autorizadas %}<div class="dashboard-card mb-4"><div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3"><div><h4 class="mb-1"><i class="bi bi-shield-check text-warning me-1"></i>Autorizados pendientes de decisión de Compras</h4><p class="small-muted mb-0">Estos pedidos ya pasaron por el filtro. Defina compra directa o envíelos a presupuestos.</p></div><span class="badge text-bg-warning">{{ pendientes_autorizadas|length }} pendiente(s)</span></div>{% for pedido in pendientes_autorizadas %}<div class="purchase-request-card p-3 mb-2"><div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-2"><div><strong>{{ pedido.codigo }}</strong><div class="small text-muted">{{ pedido.solicitado_por }} · {% for detalle in pedido.detalles %}{{ detalle.descripcion or (detalle.insumo.nombre if detalle.insumo else 'Sin descripción') }}{% if not loop.last %}, {% endif %}{% endfor %}</div></div></div><form method="post" action="{{ url_for('decidir_gestion_pedido_compras', pedido_id=pedido.id) }}" class="row g-2 align-items-center"><div class="col-md-4"><input class="form-control form-control-sm" type="number" name="monto_estimado" min="0" step="1" placeholder="Monto estimado (Gs)" required></div><div class="col-md-5"><select class="form-select form-select-sm" name="decision" required><option value="">Seleccione la gestión</option><option value="inmediata">Compra inmediata</option><option value="presupuestar">Enviar a presupuestos</option></select></div><div class="col-md-3"><button class="btn btn-sm btn-warning w-100" type="submit"><i class="bi bi-check2 me-1"></i>Decidir en Compras</button></div></form></div>{% endfor %}</div>{% endif %}
+
+<div class="dashboard-card mb-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div><h4 class="mb-1"><i class="bi bi-inbox text-warning me-1"></i>Solicitudes para cargar presupuestos</h4><p class="small-muted mb-0">Aquí aparecen todas las solicitudes que en Inventario fueron marcadas como “Enviar a presupuestos”.</p></div>
+    <span class="badge text-bg-warning">{{ solicitudes|length }} pendiente(s)</span>
+  </div>
+
+  {% for pedido in solicitudes %}
+  <article class="purchase-request-card overflow-hidden">
+    <div class="purchase-request-header p-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div><button class="btn btn-link text-decoration-none text-start p-0" type="button" data-bs-toggle="collapse" data-bs-target="#presupuesto-{{ pedido.id }}" aria-expanded="false" aria-controls="presupuesto-{{ pedido.id }}"><i class="bi bi-chevron-down me-1"></i><strong>{{ pedido.codigo }}</strong></button><span class="text-muted ms-2">{{ pedido.fecha.strftime('%d/%m/%Y %H:%M') }}</span><div class="small text-muted">Solicitante: {{ pedido.solicitado_por }}</div></div>
+      <span class="badge {% if pedido.presupuestos|length >= 3 %}text-bg-success{% else %}text-bg-secondary{% endif %}">{{ pedido.presupuestos|length }} presupuesto(s) cargado(s)</span>
+    </div>
+    <div id="presupuesto-{{ pedido.id }}" class="collapse">
+    <div class="p-3">
+      <div class="mb-3"><strong>Detalle:</strong> {% for detalle in pedido.detalles %}{{ detalle.insumo.codigo if detalle.insumo else '-' }} · {{ detalle.descripcion or detalle.insumo.nombre }}: {{ detalle.cantidad }} {{ detalle.unidad }}{% if not loop.last %}; {% endif %}{% endfor %}</div>
+      <div class="row g-3">
+        <div class="col-lg-5 quote-summary">
+          <h6 class="mb-2">Presupuestos recibidos</h6>
+          {% for presupuesto in pedido.presupuestos %}
+          <div class="border rounded p-2 mb-2 small"><i class="bi bi-paperclip me-1"></i><strong>{{ presupuesto.proveedor }}</strong> · {{ '%.0f'|format(presupuesto.monto) }} Gs{% if presupuesto.forma_pago %} · {{ presupuesto.forma_pago.nombre }}{% endif %}{% if presupuesto.archivo %}<a class="ms-2" href="{{ url_for('ver_presupuesto_pedido', pedido_id=pedido.id, presupuesto_id=presupuesto.id) }}" target="_blank" title="Ver documento"><i class="bi bi-eye"></i></a>{% else %}<span class="text-danger ms-2">Sin documento</span>{% endif %}</div>
+          {% else %}<span class="small text-muted">Todavía no hay presupuestos cargados.</span>{% endfor %}
+        </div>
+        <div class="col-lg-7">
+          <form method="post" enctype="multipart/form-data" action="{{ url_for('agregar_presupuesto_pedido', pedido_id=pedido.id) }}" class="quote-form">
+            <h6 class="mb-2">Agregar presupuestos</h6>
+            <div class="quote-rows">
+              {% for fila in range(3) %}
+              <div class="quote-row">
+                <div class="row g-2 align-items-end">
+                  <div class="col-md-6"><label class="form-label small">Proveedor del catálogo</label><select class="form-select form-select-sm" name="proveedor_id"><option value="">Seleccione</option>{% for proveedor in proveedores %}<option value="{{ proveedor.id }}">{{ proveedor.nombre }}</option>{% endfor %}</select></div>
+                  <div class="col-md-6"><label class="form-label small">Proveedor nuevo</label><input class="form-control form-control-sm" name="proveedor" placeholder="Si no está en catálogo"></div>
+                  <div class="col-md-4"><label class="form-label small">Forma de pago</label><select class="form-select form-select-sm" name="forma_pago_id"><option value="">Seleccione</option>{% for forma_pago in formas_pago %}<option value="{{ forma_pago.id }}">{{ forma_pago.nombre }}</option>{% endfor %}</select></div>
+                  <div class="col-md-4"><label class="form-label small">Monto (Gs)</label><input class="form-control form-control-sm" name="monto" type="number" min="1" step="1" required></div>
+                  <div class="col-md-4"><label class="form-label small">Documento</label><input class="form-control form-control-sm quote-document" name="archivo" type="file" accept=".pdf,.jpg,.jpeg,.png" required></div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            <div class="d-flex flex-wrap justify-content-between gap-2 mt-2"><button class="btn btn-sm btn-outline-primary add-quote" type="button"><i class="bi bi-plus-lg me-1"></i>Agregar otra opción</button><button class="btn btn-sm btn-primary" type="submit"><i class="bi bi-upload me-1"></i>Guardar presupuestos</button></div>
+          </form>
+        </div>
+      </div>
+    </div>
+    </div>
+  </article>
+  {% else %}<div class="text-center text-muted py-4">No hay solicitudes marcadas para presupuestar.</div>{% endfor %}
+</div>
+
+<div class="dashboard-card">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div><h4 class="mb-1"><i class="bi bi-send-check text-success me-1"></i>Presupuestos para enviar a Gerencia</h4><p class="small-muted mb-0">Solo aparecen solicitudes con mínimo 3 presupuestos y sus documentos adjuntos.</p></div>
+    <span class="badge text-bg-success">{{ presupuestos_para_gerencia|length }} lista(s)</span>
+  </div>
+  {% for pedido in presupuestos_para_gerencia %}
+  <div class="purchase-request-card p-3 mb-2 d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div><strong>{{ pedido.codigo }}</strong><div class="small text-muted">{{ pedido.solicitado_por }} · {% for detalle in pedido.detalles %}{{ detalle.insumo.nombre if detalle.insumo else detalle.descripcion }}{% if not loop.last %}, {% endif %}{% endfor %}</div><div class="small text-success">{{ pedido.presupuestos|length }} presupuesto(s) con documento</div></div>
+    <form method="post" action="{{ url_for('enviar_presupuestos_gerencia', pedido_id=pedido.id) }}"><button class="btn btn-success" type="submit"><i class="bi bi-send me-1"></i>Enviar a Gerencia</button></form>
+  </div>
+  {% else %}<div class="text-center text-muted py-4">Todavía no hay solicitudes completas para enviar a Gerencia.</div>{% endfor %}
+</div>
+
+<script>
+  document.querySelectorAll('.quote-form').forEach(function(form) {
+    var rows = form.querySelector('.quote-rows');
+    form.querySelector('.add-quote').addEventListener('click', function() {
+      var row = rows.querySelector('.quote-row').cloneNode(true);
+      row.querySelectorAll('input').forEach(function(input) { input.value = ''; });
+      row.querySelectorAll('select').forEach(function(select) { select.selectedIndex = 0; });
+      rows.appendChild(row);
+    });
+  });
+</script>
+{% endblock %}

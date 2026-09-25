@@ -1,0 +1,4 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-4"><h1>Despacho de producto terminado</h1><p class="text-muted">Cargue atados escaneando el QR de cada etiqueta.</p><div class="d-flex flex-wrap gap-2"><a class="btn btn-primary" href="/admin/despacho/carga">Abrir carga con carrito y escáner</a><a class="btn btn-outline-info" href="{{ url_for('historico_atados_despacho') }}"><i class="bi bi-search me-1"></i>Histórico de atados</a><a class="btn btn-outline-secondary" href="/admin/despacho/clientes">Centro de clientes</a><a class="btn btn-outline-secondary" href="/admin/despacho/historial">Historial de despachos</a></div></div>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-4">
+  <div class="mb-4">
+    <h1>Panel administrativo</h1>
+    <p class="text-muted">Gestión del sistema IGP Metales.</p>
+  </div>
+  <div class="row g-3">
+    <div class="col-md-4"><a class="btn btn-primary w-100 p-3" href="/rrhh">Recursos Humanos</a></div>
+    <div class="col-md-4"><a class="btn btn-primary w-100 p-3" href="/admin/qality">Control de calidad</a></div>
+    <div class="col-md-4"><a class="btn btn-primary w-100 p-3" href="/admin/despacho">Despacho de producto terminado</a></div>
+    <div class="col-md-4"><a class="btn btn-outline-primary w-100 p-3" href="/admin/certificaciones">Certificaciones de calidad</a></div>
+    <div class="col-md-4"><a class="btn btn-outline-secondary w-100 p-3" href="/reportes">Reportes</a></div>
+    <div class="col-md-4"><a class="btn btn-outline-secondary w-100 p-3" href="/logout">Cerrar sesión</a></div>
+  </div>
+</div>
+{% endblock %}

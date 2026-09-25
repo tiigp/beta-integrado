@@ -1,0 +1,61 @@
+{% extends "layout.html" %}
+{% block content %}
+<style>
+  .quality-home { max-width: 1180px; margin: 0 auto; color: #172033; }
+  .quality-hero { position: relative; overflow: hidden; padding: 2rem 2.2rem; border: 1px solid #203b56; border-radius: 18px; background: linear-gradient(115deg, #0b1f35 0%, #17354d 58%, #344454 100%); color: #fff; box-shadow: 0 18px 42px rgba(12, 35, 56, .22); }
+  .quality-hero::before { content: ""; position: absolute; inset: 0; z-index: 0; background: linear-gradient(90deg, rgba(11,31,53,.94) 0%, rgba(23,53,77,.68) 48%, rgba(52,68,84,.28) 100%), url("{{ url_for('login_media', filename='marcadeagua.png') }}") center 42% / cover no-repeat; opacity: .62; filter: grayscale(.2) contrast(1.18) saturate(.85); }
+  .quality-hero::after { content: ""; position: absolute; width: 260px; height: 260px; right: -90px; top: -120px; z-index: 0; border: 1px solid rgba(255,255,255,.14); border-radius: 50%; box-shadow: 0 0 0 22px rgba(255,255,255,.035), 0 0 0 44px rgba(255,255,255,.025); }
+  .quality-kicker { margin-bottom: .65rem; color: #8fe5d1; font-size: .72rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
+  .quality-hero h1 { position: relative; z-index: 1; margin: 0; font-size: clamp(1.8rem, 3vw, 2.65rem); font-weight: 750; letter-spacing: -.03em; }
+  .quality-hero p { position: relative; z-index: 1; max-width: 650px; margin: .55rem 0 0; color: rgba(255,255,255,.75); }
+  .lamination-card { min-height: 100px; margin-top: .5rem; padding: 1rem; border-color: #b9dfd2; background: #fff; color: #172033; }
+  .lamination-card:hover { color: #172033; border-color: #7ebfae; }
+  .lamination-card .action-icon { width: 46px; height: 46px; flex-basis: 46px; border-radius: 11px; background: #12866b; color: #fff; font-size: 1.25rem; }
+  .lamination-card-content { min-width: 0; }
+  .lamination-card-kicker { display: block; color: #12866b; font-size: .68rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+  .lamination-card h2 { margin: .2rem 0 .25rem; color: #172033; font-size: .98rem; font-weight: 750; }
+  .lamination-card p { margin: .3rem 0 0; color: #718096; font-size: .82rem; line-height: 1.35; }
+  .lamination-card-data { display: inline-flex; flex-wrap: wrap; gap: .65rem; margin-top: .45rem; color: #286a56; font-size: .72rem; font-weight: 700; }
+  .lamination-card-arrow { margin-left: auto; color: #12866b; font-size: 1.1rem; }
+  .lamination-card.is-idle { border-color: #d7e0e8; background: #fff; }
+  .quality-hero-content { position: relative; z-index: 1; display: flex; align-items: flex-start; justify-content: space-between; gap: 1.5rem; }
+  .quality-hero-side { display: flex; flex-direction: column; align-items: flex-end; gap: .8rem; }
+  .quality-hero-actions { display: flex; align-items: center; justify-content: flex-end; gap: .45rem; flex-wrap: wrap; }
+  .quality-hero-side .lamination-card { width: min(100%, 370px); }
+  .quality-hero-actions .back-button, .quality-hero-actions .logout-link { color: #e9f4fb; border-color: rgba(255,255,255,.32); background: rgba(255,255,255,.1); }
+  .quality-hero-actions .back-button:hover, .quality-hero-actions .logout-link:hover { color: #fff; background: rgba(255,255,255,.2); }
+  .quality-hero-actions .header-menu { color: #e9f4fb; }
+  .quality-section-title { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin: 1.4rem 0 .75rem; }
+  .quality-section-title h2 { margin: 0; color: #19324a; font-size: 1.05rem; font-weight: 750; }
+  .quality-section-title span { color: #8492a6; font-size: .8rem; }
+  .quality-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .85rem; }
+  .quality-action { display: flex; align-items: center; gap: .85rem; min-height: 100px; padding: 1rem; border: 1px solid #e1e8ef; border-radius: 12px; background: #fff; color: #172033; text-decoration: none; box-shadow: 0 6px 18px rgba(31,41,55,.055); transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease; }
+  .quality-action:hover { color: #172033; transform: translateY(-3px); border-color: #9bb8cf; box-shadow: 0 13px 26px rgba(31,41,55,.12); }
+  .quality-action .action-icon { display: grid; place-items: center; width: 46px; height: 46px; flex: 0 0 46px; border-radius: 11px; color: #fff; font-size: 1.25rem; }
+  .quality-action h2 { margin: 0; font-size: .98rem; font-weight: 750; }
+  .quality-action p { margin: .3rem 0 0; color: #718096; font-size: .82rem; line-height: 1.35; }
+  .quality-green .action-icon { background: #12866b; } .quality-blue .action-icon { background: #2463b5; } .quality-gold .action-icon { background: #ad7415; } .quality-slate .action-icon { background: #52657d; } .quality-purple .action-icon { background: #7652a8; }
+  @media (max-width: 850px) { .quality-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 700px) { .quality-hero-content { flex-direction: column; } .quality-hero-side { width: 100%; align-items: flex-start; } .quality-hero-actions { justify-content: flex-start; } }
+  @media (max-width: 520px) { .quality-hero { padding: 1.45rem; } .quality-grid { grid-template-columns: 1fr; } .quality-action { min-height: 84px; } }
+</style>
+<div class="quality-home">
+  <header class="quality-hero"><div class="quality-hero-content"><div><div class="quality-kicker">IGP Metales · Operaciones</div><h1>Control de Calidad</h1><p>Supervise la conformidad del producto, la trazabilidad de coladas y la documentación de despacho desde un único centro de control.</p></div><div class="quality-hero-side"><div class="quality-hero-actions" aria-label="Acciones de cuenta"><a class="back-button" href="{{ url_for('admin_dashboard') }}">Volver al panel</a><div class="dropdown"><button class="logout-link" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Cuenta"><i class="bi bi-person-circle"></i><span class="d-none d-md-inline">Cuenta</span></button><ul class="dropdown-menu dropdown-menu-end"><li><span class="dropdown-item-text"><strong>{{ current_user.full_name }}</strong><br><small>@{{ current_user.username }}</small></span></li></ul></div><a class="logout-link" href="{{ url_for('logout') }}" title="Cerrar sesión"><i class="bi bi-box-arrow-right"></i><span class="d-none d-md-inline">Cerrar sesión</span></a><button class="header-menu" type="button" aria-label="Acciones"><span></span></button></div><a class="quality-action lamination-card {{ 'is-idle' if not horno_display else '' }}" href="{{ url_for('horno_laminacion', solo_display=1) }}" aria-label="Abrir carga de horno para laminación"><span class="action-icon"><i class="bi bi-fire"></i></span><span class="lamination-card-content"><span class="lamination-card-kicker">Acceso operativo</span><h2>Colada para laminar en curso</h2>{% if horno_display %}<p>Haga clic para abrir el display completo de carga de horno.</p><span class="lamination-card-data"><span><i class="bi bi-droplet-half me-1"></i>{{ horno_display.numero_colada }}</span><span><i class="bi bi-box-seam me-1"></i>{{ horno_display.cantidad_palanquillas }} Palanquillas</span></span>{% else %}<p>No hay una colada activa. Abrir el display para cargar la siguiente.</p>{% endif %}</span><i class="bi bi-arrow-up-right lamination-card-arrow"></i></a></div></div></header>
+  <div class="quality-section-title"><h2>Operación diaria</h2><span>Accesos principales</span></div>
+  <section class="quality-grid" aria-label="Operación diaria">
+    <a class="quality-action quality-green" href="{{ url_for('quality_dashboard', show='nueva') }}"><span class="action-icon"><i class="bi bi-plus-circle"></i></span><span><h2>Nueva etiqueta</h2><p>Registrar una nueva etiqueta de calidad</p></span></a>
+    <a class="quality-action quality-blue" href="{{ url_for('consultar_etiquetas_qality') }}"><span class="action-icon"><i class="bi bi-search"></i></span><span><h2>Consultar etiqueta</h2><p>Buscar, editar, previsualizar y descargar</p></span></a>
+    <a class="quality-action quality-gold" href="{{ url_for('panel_despacho_acero') }}"><span class="action-icon"><i class="bi bi-upc-scan"></i></span><span><h2>Despacho de Varillas</h2><p>Abrir panel de despacho y carga</p></span></a>
+    <a class="quality-action quality-blue" href="{{ url_for('clientes_despacho') }}"><span class="action-icon"><i class="bi bi-person-vcard"></i></span><span><h2>Centro de Clientes</h2><p>Registrar y consultar clientes de despacho</p></span></a>
+    <a class="quality-action quality-slate" href="{{ url_for('reporte_cierre_turno_qality') }}"><span class="action-icon"><i class="bi bi-clipboard-check"></i></span><span><h2>Cierre de Turno</h2><p>Revisar producción y conformidad</p></span></a>
+    <a class="quality-action quality-purple" href="{{ url_for('certificaciones_calidad') }}"><span class="action-icon"><i class="bi bi-award"></i></span><span><h2>Certificaciones</h2><p>Gestionar certificados de calidad</p></span></a>
+  </section>
+  <div class="quality-section-title"><h2>Control y trazabilidad</h2><span>Consulta y administración</span></div>
+  <section class="quality-grid" aria-label="Control y trazabilidad">
+    <a class="quality-action quality-blue" href="{{ url_for('centro_documental_certificacion') }}"><span class="action-icon"><i class="bi bi-archive"></i></span><span><h2>Centro Documental de Certificación</h2><p>Consultar certificados por colada o número</p></span></a>
+    <a class="quality-action quality-green" href="{{ url_for('existencias_calidad') }}"><span class="action-icon"><i class="bi bi-boxes"></i></span><span><h2>Existencias de Calidad</h2><p>Atados, palanquillas y disponibilidad por medida</p></span></a>
+    <a class="quality-action quality-slate" href="{{ url_for('responsables_calidad') }}"><span class="action-icon"><i class="bi bi-people"></i></span><span><h2>Responsables</h2><p>Administrar operadores y supervisores</p></span></a>
+  </section>
+
+</div>
+{% endblock %}

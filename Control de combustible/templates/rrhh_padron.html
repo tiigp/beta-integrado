@@ -1,0 +1,42 @@
+{% extends "layout.html" %}
+{% block content %}
+<style>
+  .padron-page { max-width: 1240px; margin: 0 auto; }
+  .padron-hero { padding: 1.25rem 1.5rem; border: 1px solid #d7e3ed; border-radius: 16px; background: linear-gradient(120deg, #f5fbff, #fff 70%, #fff7ec); }
+  .padron-hero h1 { margin: 0; color: #19364f; font-size: clamp(1.55rem, 3vw, 2.2rem); }
+  .padron-hero p { margin: .4rem 0 0; color: #68788b; }
+  .search-box { position: relative; }
+  .search-box .bi-search { position: absolute; top: .72rem; left: .85rem; color: #718096; }
+  .search-box input { padding-left: 2.35rem; }
+  .state-badge { display: inline-flex; align-items: center; gap: .35rem; padding: .35rem .65rem; border-radius: 999px; font-size: .78rem; font-weight: 750; white-space: nowrap; }
+  .state-badge.contratado { background: #dff5e8; color: #176b43; }
+  .state-badge.prueba { background: #fff0c9; color: #91500d; }
+  .results-count { color: #718096; font-size: .85rem; }
+  #padron-empty { display: none; }
+</style>
+<div class="container py-4 padron-page">
+  <header class="padron-hero mb-4"><div class="d-flex flex-wrap justify-content-between align-items-center gap-3"><div><div class="text-uppercase small fw-semibold text-primary">Recursos Humanos</div><h1>Padrón de colaboradores</h1><p>Busque rápidamente por nombre, legajo o cédula.</p></div><a class="btn btn-primary" href="/rrhh/colaboradores"><i class="bi bi-person-plus me-1"></i>Nuevo colaborador</a></div></header>
+  <section class="card border-0 shadow-sm"><div class="card-body"><div class="row align-items-center g-3 mb-3"><div class="col-lg-8"><label class="visually-hidden" for="padron-search">Buscar colaborador</label><div class="search-box"><i class="bi bi-search"></i><input id="padron-search" class="form-control" type="search" autocomplete="off" placeholder="Escriba nombre, legajo o cédula..."></div></div><div class="col-lg-4 text-lg-end"><span class="results-count" id="padron-count">{{ colaboradores|length }} colaborador(es)</span></div></div><div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead><tr><th>Legajo</th><th>Nombre</th><th>Cédula</th><th>Fecha de ingreso</th><th>Área</th><th>Cargo</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="padron-body">{% for item in colaboradores %}{% set estado_prueba = item.estado|lower == 'prueba' %}<tr class="padron-row" data-search="{{ (item.nombre or '') ~ ' ' ~ (item.legajo or '') ~ ' ' ~ (item.documento or '') }}"><td>{{ item.legajo or '-' }}</td><td><strong>{{ item.nombre }}</strong></td><td>{{ item.documento or '-' }}</td><td>{{ item.fecha_ingreso.strftime('%d/%m/%Y') if item.fecha_ingreso else '-' }}</td><td>{{ item.area or '-' }}</td><td>{{ item.cargo or item.puesto or '-' }}</td><td><span class="state-badge {{ 'prueba' if estado_prueba else 'contratado' }}"><i class="bi {{ 'bi-hourglass-split' if estado_prueba else 'bi-person-check' }}"></i>{{ 'Período de prueba' if estado_prueba else 'Contratado' }}</span></td><td><a class="btn btn-sm btn-outline-primary" href="/rrhh/colaboradores/{{ item.id }}/editar" title="Editar colaborador"><i class="bi bi-pencil-square"></i></a></td></tr>{% else %}<tr><td colspan="8" class="text-center text-muted py-4">No hay colaboradores registrados.</td></tr>{% endfor %}<tr id="padron-empty"><td colspan="8" class="text-center text-muted py-4">No se encontraron colaboradores con esa búsqueda.</td></tr></tbody></table></div></div></section>
+</div>
+<script>
+  (() => {
+    const input = document.getElementById('padron-search');
+    const rows = [...document.querySelectorAll('.padron-row')];
+    const empty = document.getElementById('padron-empty');
+    const count = document.getElementById('padron-count');
+    const normalize = (value) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    const filterRows = () => {
+      const query = normalize(input.value);
+      let visible = 0;
+      rows.forEach((row) => {
+        const matches = normalize(row.dataset.search).includes(query);
+        row.hidden = !matches;
+        if (matches) visible += 1;
+      });
+      empty.style.display = visible || !rows.length ? 'none' : 'table-row';
+      count.textContent = `${visible} colaborador(es)`;
+    };
+    input.addEventListener('input', filterRows);
+  })();
+</script>
+{% endblock %}

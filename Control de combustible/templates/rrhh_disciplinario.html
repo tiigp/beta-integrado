@@ -1,0 +1,34 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div><div class="text-uppercase small fw-semibold text-danger">Recursos Humanos</div><h1 class="mb-1">Amonestaciones y sanciones</h1><p class="text-muted mb-0">Registro histórico y soporte documentario del comportamiento del personal.</p></div>
+    <a class="btn btn-outline-secondary" href="{{ url_for('rrhh') }}"><i class="bi bi-arrow-left me-1"></i>Volver a RRHH</a>
+  </div>
+  {% with messages = get_flashed_messages(with_categories=true) %}{% for category, message in messages %}<div class="alert alert-{{ 'danger' if category == 'error' else category }}">{{ message }}</div>{% endfor %}{% endwith %}
+  <div class="row g-4">
+    <div class="col-lg-5">
+      <div class="card border-0 shadow-sm"><div class="card-body p-4">
+        <h2 class="h5">Nuevo registro</h2><p class="small text-muted">Complete el motivo y conserve una constancia para imprimir y firmar.</p>
+        <form method="post" class="row g-3">
+          <div class="col-12"><label class="form-label">Colaborador</label><select class="form-select" name="colaborador_id" required><option value="">Seleccione</option>{% for colaborador in colaboradores %}<option value="{{ colaborador.id }}">{{ colaborador.nombre }} · {{ colaborador.legajo }}</option>{% endfor %}</select></div>
+          <div class="col-md-7"><label class="form-label">Tipo</label><select class="form-select" name="tipo" required><option>Amonestación</option><option>Sanción</option><option>Advertencia</option><option>Suspensión</option></select></div>
+          <div class="col-md-5"><label class="form-label">Días suspendidos</label><input class="form-control" type="number" name="dias_suspendidos" min="0" value="0"></div>
+          <div class="col-12"><label class="form-label">Motivo</label><textarea class="form-control" name="motivo" rows="4" required></textarea></div>
+          <div class="col-12"><label class="form-label">Observación</label><textarea class="form-control" name="observacion" rows="3"></textarea></div>
+          <div class="col-12"><button class="btn btn-danger w-100" type="submit"><i class="bi bi-file-earmark-plus me-1"></i>Guardar y generar registro</button></div>
+        </form>
+      </div></div>
+    </div>
+    <div class="col-lg-7">
+      <div class="card border-0 shadow-sm"><div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3"><h2 class="h5 mb-0">Histórico documentado</h2><span class="badge text-bg-danger">{{ registros|length }} registros</span></div>
+        <div class="table-responsive"><table class="table align-middle"><thead><tr><th>Fecha</th><th>Colaborador</th><th>Tipo</th><th>Motivo</th><th class="text-end">Documento</th></tr></thead><tbody>
+          {% for registro in registros %}<tr><td class="text-nowrap">{{ registro.fecha.strftime('%d/%m/%Y') }}</td><td><div class="fw-semibold">{{ registro.colaborador.nombre }}</div><div class="small text-muted">{{ registro.colaborador.legajo }}</div></td><td><span class="badge text-bg-light border">{{ registro.tipo }}</span></td><td class="small">{{ registro.motivo|truncate(70) }}</td><td class="text-end text-nowrap"><a class="btn btn-sm btn-outline-primary" href="{{ url_for('rrhh_disciplinario_pdf_preview', registro_id=registro.id) }}" target="_blank" title="Vista previa e impresión"><i class="bi bi-eye me-1"></i>Vista previa</a> <a class="btn btn-sm btn-outline-danger" href="{{ url_for('rrhh_disciplinario_pdf', registro_id=registro.id) }}" title="Descargar PDF"><i class="bi bi-download"></i></a></td></tr>
+          {% else %}<tr><td colspan="5" class="text-center text-muted py-4">No hay registros disciplinarios.</td></tr>{% endfor %}
+        </tbody></table></div>
+      </div></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

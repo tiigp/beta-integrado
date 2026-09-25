@@ -1,0 +1,77 @@
+{% extends "layout.html" %}º
+{% block content %}
+<style>
+  .admin-home { max-width: 1280px; margin: 0 auto; padding: 1.6rem 0 2.8rem; color: #172033; }
+  .admin-hero { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; padding: 2rem 2.2rem; margin-bottom: 1.8rem; border: 1px solid #d8e0e8; border-radius: 20px; background: #f8fafc; box-shadow: 0 18px 42px rgba(20, 39, 56, .1); }
+  .admin-hero::before { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(248,250,252,.94) 0%, rgba(248,250,252,.78) 48%, rgba(248,250,252,.58) 100%), url("{{ url_for('login_media', filename='aceria.jpeg') }}") center / cover no-repeat; opacity: .8; filter: grayscale(.32) contrast(1.12); }
+  .admin-hero > * { position: relative; z-index: 1; }
+  .admin-kicker { margin-bottom: .6rem; color: #157a79; font-size: .72rem; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
+  .admin-hero h1 { margin: 0; color: #172d43; font-size: clamp(1.9rem, 3vw, 2.7rem); font-weight: 800; letter-spacing: -.025em; }
+  .admin-hero p { max-width: 620px; margin: .45rem 0 0; color: #64748b; }
+  .admin-logo { width: 116px; max-height: 72px; object-fit: contain; }
+  .admin-hero-side { display: flex; flex-direction: column; align-items: flex-end; gap: .8rem; }
+  .admin-hero-actions { display: flex; align-items: center; justify-content: flex-end; gap: .45rem; flex-wrap: wrap; }
+  .admin-hero-actions .logout-link { color: #40516a; border-color: #cbd8e8; background: #eef4fb; }
+  .admin-hero-actions .logout-link:hover { color: #173d52; background: #e0ebf7; }
+  .admin-hero-actions .header-menu { color: #40516a; }
+  .admin-section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin: 0 0 .8rem; }
+  .admin-section-heading h2 { margin: 0; color: #19324a; font-size: 1.12rem; font-weight: 800; }
+  .admin-section-heading span { color: #8492a6; font-size: .8rem; }
+  .module-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
+  .production-card { min-height: 176px; }
+  .production-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
+  .module-button { position: relative; min-height: 176px; display: flex; flex-direction: column; justify-content: space-between; padding: 1.2rem 1.25rem 1.15rem; overflow: hidden; color: #172033; text-decoration: none; border: 1px solid #dce4eb; border-top: 4px solid var(--module-color, #27718d); border-radius: 12px; background: #fff; box-shadow: 0 8px 20px rgba(31, 65, 88, .07); transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
+  .module-button::after { content: ""; position: absolute; width: 150px; height: 150px; right: -78px; bottom: -86px; border: 22px solid var(--module-color, #27718d); border-radius: 50%; opacity: .08; }
+  .module-button:hover { color: #172033; transform: translateY(-4px); border-color: var(--module-color, #8bb9cb); box-shadow: 0 16px 30px rgba(31, 65, 88, .15); }
+  .module-button:focus-visible { outline: 3px solid color-mix(in srgb, var(--module-color, #27718d) 35%, #fff); outline-offset: 3px; }
+  .module-topline { display: flex; align-items: center; justify-content: space-between; }
+  .module-icon { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 12px; background: color-mix(in srgb, var(--module-color, #27718d) 12%, #fff); color: var(--module-color, #27718d); font-size: 1.35rem; border: 1px solid color-mix(in srgb, var(--module-color, #27718d) 20%, #fff); }
+  .module-arrow { color: #9aabba; font-size: 1rem; transition: transform .16s ease, color .16s ease; }
+  .module-button:hover .module-arrow { color: var(--module-color, #27718d); transform: translateX(3px); }
+  .module-button h2 { margin: .95rem 0 .3rem; color: #20384e; font-size: 1.03rem; line-height: 1.25; font-weight: 800; text-transform: uppercase; }
+  .module-button p { max-width: 230px; margin: 0; color: #718096; font-size: .84rem; line-height: 1.35; }
+  .module-blue { --module-color: #2463b5; } .module-gold { --module-color: #9a6a1a; } .module-red { --module-color: #ad4654; } .module-green { --module-color: #168269; } .module-orange { --module-color: #b66528; } .module-teal { --module-color: #147d87; }
+  .admin-actions { margin-top: 1.4rem; text-align: right; }
+  .admin-logout { color: #52657d; border-color: #cbd8e5; }
+  @media (max-width: 1050px) { .module-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .production-card { grid-column: span 3; } }
+  @media (max-width: 800px) { .module-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .production-card { grid-column: span 2; } }
+  @media (max-width: 520px) { .admin-hero { align-items: flex-start; padding: 1.4rem; } .admin-hero-side { width: 100%; align-items: flex-start; } .admin-hero-actions { justify-content: flex-start; } .admin-logo { width: 82px; } .module-grid { grid-template-columns: 1fr; } .production-card { grid-column: span 1; } .production-grid { grid-template-columns: 1fr; } .module-button { min-height: 132px; } }
+</style>
+<div class="admin-home">
+  <header class="admin-hero">
+    <div>
+      <div class="admin-kicker">IGP Metales · Administración</div>
+      <h1>Panel principal</h1>
+      <p>Acceda a las áreas operativas y administrativas desde un espacio centralizado.</p>
+    </div>
+    <div class="admin-hero-side">
+      <div class="admin-hero-actions" aria-label="Acciones de cuenta">
+        <a class="back-button" href="{{ url_for('admin_dashboard') }}">Volver al panel</a>
+        <div class="dropdown">
+          <button class="logout-link" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Cuenta"><i class="bi bi-person-circle"></i><span class="d-none d-md-inline">Cuenta</span></button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><span class="dropdown-item-text"><strong>{{ current_user.full_name }}</strong><br><small>@{{ current_user.username }}</small></span></li>
+          </ul>
+        </div>
+        <a class="logout-link" href="{{ url_for('logout') }}" title="Cerrar sesión"><i class="bi bi-box-arrow-right"></i><span>Cerrar sesión</span></a>
+        <button class="header-menu" type="button" aria-label="Acciones"><span></span></button>
+      </div>
+      <img class="admin-logo" src="{{ url_for('static', filename='logo.png') }}" alt="IGP Metales">
+    </div>
+  </header>
+  <div class="admin-section-heading"><h2>Módulos del sistema</h2><span>Seleccione un área para continuar</span></div>
+  <section class="module-grid" aria-label="Módulos del sistema">
+    <a class="module-button module-red" href="{{ url_for('rrhh') }}"><span class="module-topline"><span class="module-icon"><i class="bi bi-person-badge"></i></span><i class="bi bi-arrow-up-right module-arrow"></i></span><span><h2>RRHH</h2><p>Personas, evaluaciones y documentos</p></span></a>
+    <a class="module-button module-orange" href="{{ url_for('quality_dashboard') }}"><span class="module-topline"><span class="module-icon"><i class="bi bi-patch-check"></i></span><i class="bi bi-arrow-up-right module-arrow"></i></span><span><h2>Control de Calidad</h2><p>Control, certificados y trazabilidad</p></span></a>
+    <a class="module-button module-blue" href="{{ url_for('reportes') }}"><span class="module-topline"><span class="module-icon"><i class="bi bi-fuel-pump"></i></span><i class="bi bi-arrow-up-right module-arrow"></i></span><span><h2>Combustible</h2><p>Stock, compras y consumo operativo</p></span></a>
+    <a class="module-button module-orange" href="{{ url_for('despachos') }}"><span class="module-topline"><span class="module-icon"><i class="bi bi-truck"></i></span><i class="bi bi-arrow-up-right module-arrow"></i></span><span><h2>Despacho de combustible</h2><p>Registrar cargas y consultar el historial</p></span></a>
+    <a class="module-button module-green" href="{{ url_for('modulo_compras') }}"><span class="module-topline"><span class="module-icon"><i class="bi bi-cart3"></i></span><i class="bi bi-arrow-up-right module-arrow"></i></span><span><h2>Compras</h2><p>Pedidos, presupuestos y órdenes</p></span></a>
+    <a class="module-button module-gold" href="{{ url_for('inventario') }}"><span class="module-topline"><span class="module-icon"><i class="bi bi-box-seam"></i></span><i class="bi bi-arrow-up-right module-arrow"></i></span><span><h2>Inventario</h2><p>Insumos, movimientos y existencias</p></span></a>
+    <a class="module-button module-green" href="{{ url_for('syso_dashboard') }}"><span class="module-topline"><span class="module-icon"><i class="bi bi-shield-check"></i></span><i class="bi bi-arrow-up-right module-arrow"></i></span><span><h2>SYSO</h2><p>Seguridad y salud ocupacional</p></span></a>
+    <a class="module-button module-teal" href="{{ url_for('bascula') }}"><span class="module-topline"><span class="module-icon"><i class="bi bi-speedometer2"></i></span><i class="bi bi-arrow-up-right module-arrow"></i></span><span><h2>Báscula</h2><p>Compras, ventas y traslados de materiales</p></span></a>
+    <a class="module-button module-orange production-card" href="{{ url_for('produccion_dashboard') }}" aria-label="Producción"><span class="module-topline"><span class="module-icon"><i class="bi bi-building-gear"></i></span><i class="bi bi-arrow-up-right module-arrow"></i></span><span><h2>Producción</h2><p>Horno y laminación</p></span></a>
+    <a class="module-button module-teal" href="{{ url_for('usuarios') }}"><span class="module-topline"><span class="module-icon"><i class="bi bi-people"></i></span><i class="bi bi-arrow-up-right module-arrow"></i></span><span><h2>Usuarios</h2><p>Cuentas, roles y permisos de acceso</p></span></a>
+  </section>
+  <div class="admin-actions"><a class="btn btn-outline-primary me-2" href="{{ url_for('diagrama_entidad_relacion_pdf') }}"><i class="bi bi-diagram-3 me-2"></i>Descargar DER del sistema</a><a class="btn btn-outline-secondary admin-logout" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión</a></div>
+</div>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <div class="small text-uppercase text-primary fw-semibold">Control de Calidad</div>
+      <h1 class="mb-1">Cierre de turno</h1>
+      <p class="text-muted mb-0">Genere el reporte de producción por turno y por área.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{{ url_for('quality_dashboard') }}"><i class="bi bi-grid me-2"></i>Volver a Calidad</a>
+  </div>
+
+  <div class="quality-form-card p-4 mb-4">
+    <form method="post" class="row g-3 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label" for="fecha_desde">Fecha desde</label>
+        <input class="form-control" id="fecha_desde" name="fecha_desde" type="date" value="{{ fecha_desde }}" required>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label" for="fecha_hasta">Fecha hasta</label>
+        <input class="form-control" id="fecha_hasta" name="fecha_hasta" type="date" value="{{ fecha_hasta }}" required>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label" for="turno">Turno</label>
+        <select class="form-select" id="turno" name="turno" required>
+          <option value="A" {{ 'selected' if turno == 'A' }}>06:00 a 14:00</option>
+          <option value="B" {{ 'selected' if turno == 'B' }}>14:00 a 22:00</option>
+          <option value="C" {{ 'selected' if turno == 'C' }}>22:00 a 06:00</option>
+          <option value="Global" {{ 'selected' if turno == 'Global' }}>Los tres turnos</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label" for="area">Área</label>
+        <select class="form-select" id="area" name="area" required>
+          <option value="Aceria" {{ 'selected' if area == 'Aceria' }}>Acería · Palanquillas</option>
+          <option value="Laminacion" {{ 'selected' if area == 'Laminacion' }}>Laminación · Varillas</option>
+          <option value="Global" {{ 'selected' if area == 'Global' }}>Ambas áreas</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <div class="d-flex gap-2 flex-wrap"><button class="btn btn-outline-primary" name="formato" value="preview" type="submit"><i class="bi bi-eye me-2"></i>Vista previa</button><button class="btn btn-primary" name="formato" value="pdf" type="submit"><i class="bi bi-file-earmark-pdf me-2"></i>PDF</button><button class="btn btn-success" name="formato" value="excel" type="submit"><i class="bi bi-file-earmark-excel me-2"></i>Excel</button></div>
+      </div>
+    </form>
+  </div>
+
+  <div class="quality-form-card p-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+      <div><h5 class="mb-1">Vista del periodo{% if preview_generado %} · Vista previa generada{% endif %}</h5><p class="text-muted mb-0">{{ total_etiquetas }} etiquetas encontradas. En palanquillas, el peso total se calcula como longitud × peso × cantidad.</p></div>
+      <span class="badge text-bg-light">{{ 'Acería' if area == 'Aceria' else 'Laminación' if area == 'Laminacion' else 'Todas las áreas' }} · {{ '06-14' if turno == 'A' else '14-22' if turno == 'B' else '22-06' if turno == 'C' else 'Los tres turnos' }}</span>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm table-hover align-middle">
+        <thead><tr><th>Etiqueta</th><th>Colada</th><th>Producción</th><th>Medida</th><th>Peso etiqueta</th><th>Cantidad</th><th>Peso total</th><th>Fecha y hora</th><th>Estado</th></tr></thead>
+        <tbody>
+          {% for item in etiquetas %}
+          <tr>
+            <td>ETQ-{{ '%07d'|format(item.id) }}</td>
+            <td>{{ item.colada or '-' }}</td>
+            <td>{{ 'Palanquillas' if item.tipo_producto == 'Palanquillas' else 'Varillas' }}</td>
+            <td>{{ item.medida or '-' }}</td>
+            <td>{{ item.peso or '-' }} kg</td>
+            <td>{{ item.cantidad if item.tipo_producto == 'Palanquillas' and item.cantidad is not none else '-' }}</td>
+            <td>{% if item.tipo_producto == 'Palanquillas' %}{% set cantidad = item.cantidad|float %}{% set peso = (item.peso or '0')|replace(',', '.')|float %}{% set longitud = (item.longitud or '0')|replace(',', '.')|float %}{{ '%.2f'|format(cantidad * peso * longitud) }} kg<br><strong>{{ '%.3f'|format(cantidad * peso * longitud / 1000) }} t</strong>{% else %}-{% endif %}</td>
+            <td>{{ item.created_at.strftime('%d/%m/%Y %H:%M') if item.created_at else '-' }}</td>
+            <td>{{ 'No conforme' if item.no_conforme else 'Tipo B' if item.tipo_b else 'Conforme' }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="9" class="text-center text-muted py-4">No hay producción para los filtros seleccionados.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

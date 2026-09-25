@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-4">
+  <h1>Nueva etiqueta</h1>
+  <p class="text-muted">Registre una etiqueta de Palanquillas, AP500 S o Varillas Lisas.</p>
+  <form method="post" class="row g-3">
+    <div class="col-md-6"><label class="form-label">Tipo de producto</label><select class="form-select" name="tipo_producto" required><option value="">Seleccione</option><option value="Palanquillas">Palanquillas</option><option value="AP500S">AP500 S</option><option value="VarillasLisas">Varillas Lisas</option></select></div>
+    <div class="col-md-6"><label class="form-label">Calidad</label><input class="form-control" name="calidad" required></div>
+    <div class="col-md-6"><label class="form-label">Número de colada</label><input class="form-control" name="colada" required></div>
+    <div class="col-md-3"><label class="form-label">Medida (mm)</label><select class="form-select" name="medida"><option value="">-</option><option>8</option><option>10</option><option>12</option><option>16</option><option>20</option><option>25</option></select></div>
+    <div class="col-md-3"><label class="form-label">Cantidad</label><input class="form-control" type="number" min="0" name="cantidad"></div>
+    <div class="col-md-4"><label class="form-label">Longitud</label><input class="form-control" name="longitud"></div>
+    <div class="col-md-4"><label class="form-label">Peso (kg)</label><input class="form-control" name="peso"></div>
+    <div class="col-md-4"><label class="form-label">Fecha</label><input class="form-control" type="date" name="fecha"></div>
+    <div class="col-md-4"><label class="form-label">Carbono %</label><input class="form-control" name="carbono"></div>
+    <div class="col-md-4"><label class="form-label">Silicio %</label><input class="form-control" name="silicio"></div>
+    <div class="col-md-4"><label class="form-label">Manganeso %</label><input class="form-control" name="manganeso"></div>
+    <div class="col-12"><label class="form-label">Observaciones</label><textarea class="form-control" name="observaciones" rows="3"></textarea></div>
+    <div class="col-12 d-flex gap-2"><button class="btn btn-success" type="submit">Guardar etiqueta</button><a class="btn btn-outline-secondary" href="/admin/qality">Cancelar</a></div>
+  </form>
+</div>
+{% endblock %}

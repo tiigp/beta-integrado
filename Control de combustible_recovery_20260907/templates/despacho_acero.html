@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-4">
+  <h1>Carga de camión</h1>
+  <div class="row g-4">
+    <div class="col-lg-6"><div class="card p-3"><h2 class="h5">Escáner QR</h2><video id="qrVideo" class="w-100" style="max-height:300px;background:#111" muted playsinline></video><div class="d-flex gap-2 mt-2"><button class="btn btn-primary" type="button" id="startScanner">Iniciar cámara</button><input class="form-control" id="manualCode" placeholder="ETQ-000000"><button class="btn btn-outline-primary" type="button" id="addManual">Agregar</button></div><div id="status" class="small text-muted mt-2"></div></div></div>
+    <div class="col-lg-6"><div class="card p-3"><h2 class="h5">Carrito de atados</h2><div id="cart" class="mb-3">Sin atados agregados.</div><form id="dispatchForm"><input class="form-control mb-2" name="cliente" placeholder="Cliente" required><input class="form-control mb-2" name="destino" placeholder="Destino" required><input class="form-control mb-2" name="chofer" placeholder="Chofer" required><input class="form-control mb-2" name="cedula" placeholder="Cédula" required><input class="form-control mb-2" name="chapa" placeholder="Chapa" required><button class="btn btn-success w-100" type="submit">Cerrar carga</button></form></div></div>
+  </div>
+</div>
+<script>
+const cart = new Map(), statusBox = document.getElementById('status');
+function renderCart(){const box=document.getElementById('cart'); if(!cart.size){box.textContent='Sin atados agregados.';return;} box.innerHTML=[...cart.values()].map(x=>`<div class="border rounded p-2 mb-2"><strong>${x.codigo}</strong> · ${x.tipo_nombre} · ${x.medida||'-'} mm · ${x.colada}<button type="button" class="btn btn-sm btn-outline-danger float-end" data-id="${x.id}">Quitar</button></div>`).join(''); box.querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>{cart.delete(Number(b.dataset.id));renderCart();});}
+async function addCode(code){if(!code)return; const r=await fetch('/admin/despacho/etiqueta/'+encodeURIComponent(code)); const d=await r.json(); if(!r.ok||!d.ok){statusBox.textContent=d.message||'No se pudo agregar el QR.';return;} cart.set(d.etiqueta.id,d.etiqueta); renderCart(); statusBox.textContent='Atado agregado al carrito.';}
+document.getElementById('addManual').onclick=()=>addCode(document.getElementById('manualCode').value.trim());
+document.getElementById('dispatchForm').onsubmit=async e=>{e.preventDefault(); if(!cart.size){statusBox.textContent='Agregue al menos un atado.';return;} const data=Object.fromEntries(new FormData(e.target)); data.etiqueta_ids=[...cart.keys()]; data.cliente_confirmado=true; const r=await fetch('/admin/despacho/guardar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); const d=await r.json(); statusBox.textContent=d.message|| (r.ok?'Despacho guardado.':'No se pudo guardar.'); if(r.ok){cart.clear();renderCart();e.target.reset();}};
+document.getElementById('startScanner').onclick=async()=>{if(!('BarcodeDetector' in window)){statusBox.textContent='Este navegador no admite escáner QR; use el campo manual.';return;} const video=document.getElementById('qrVideo'); const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}); video.srcObject=stream; await video.play(); const detector=new BarcodeDetector({formats:['qr_code']}); const scan=async()=>{try{const codes=await detector.detect(video);if(codes[0]){await addCode(codes[0].rawValue);}}catch{} requestAnimationFrame(scan)};scan();};
+</script>
+{% endblock %}

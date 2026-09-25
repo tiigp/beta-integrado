@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-4">
+  <h1>Editar colaborador</h1>
+  <form method="post" enctype="multipart/form-data" class="row g-3">
+    <div class="col-md-4"><label class="form-label">Legajo</label><input class="form-control" name="legajo" value="{{ colaborador.legajo }}" required></div>
+    <div class="col-md-8"><label class="form-label">Nombre completo</label><input class="form-control" name="nombre" value="{{ colaborador.nombre }}" required></div>
+    <div class="col-md-4"><label class="form-label">Tipo de documento</label><select class="form-select" name="tipo_documento"><option value="CI" {{ 'selected' if colaborador.tipo_documento == 'CI' else '' }}>Cédula de identidad</option><option value="Pasaporte" {{ 'selected' if colaborador.tipo_documento == 'Pasaporte' else '' }}>Pasaporte</option><option value="Otro" {{ 'selected' if colaborador.tipo_documento == 'Otro' else '' }}>Otro</option></select></div>
+    <div class="col-md-4"><label class="form-label">Nro. de documento</label><input class="form-control" name="documento" value="{{ colaborador.documento }}"></div>
+    <div class="col-md-4"><label class="form-label">Área</label><input class="form-control" name="area" value="{{ colaborador.area }}"></div>
+    <div class="col-md-4"><label class="form-label">Cargo</label><input class="form-control" name="cargo" value="{{ colaborador.cargo }}"></div>
+    <div class="col-md-4"><label class="form-label">Puesto</label><input class="form-control" name="puesto" value="{{ colaborador.puesto }}"></div>
+    <div class="col-md-4"><label class="form-label">Fecha de ingreso</label><input class="form-control" type="date" name="fecha_ingreso" value="{{ colaborador.fecha_ingreso.isoformat() if colaborador.fecha_ingreso else '' }}"></div>
+    <div class="col-md-4"><label class="form-label">Fecha de nacimiento</label><input class="form-control" type="date" name="fecha_nacimiento" value="{{ colaborador.fecha_nacimiento.isoformat() if colaborador.fecha_nacimiento else '' }}"></div>
+    <div class="col-md-4"><label class="form-label">Estado civil</label><input class="form-control" name="estado_civil" value="{{ colaborador.estado_civil }}"></div>
+    <div class="col-md-4"><label class="form-label">Sexo</label><input class="form-control" name="sexo" value="{{ colaborador.sexo }}"></div>
+    <div class="col-md-4"><label class="form-label">Vencimiento de cédula</label><input class="form-control" type="date" name="vencimiento_cedula" value="{{ colaborador.vencimiento_cedula.isoformat() if colaborador.vencimiento_cedula else '' }}"></div>
+    <div class="col-md-8"><label class="form-label">Dirección</label><input class="form-control" name="calle" value="{{ colaborador.calle }}"></div>
+    <div class="col-md-4"><label class="form-label">País</label><input class="form-control" name="pais" value="{{ colaborador.pais }}"></div>
+    <div class="col-md-4"><label class="form-label">Nacionalidad</label><input class="form-control" name="nacionalidad" value="{{ colaborador.nacionalidad }}"></div>
+    <div class="col-md-4"><label class="form-label">Sector o sección</label><input class="form-control" name="seccion" value="{{ colaborador.seccion }}"></div>
+    <div class="col-md-4"><label class="form-label">Correo electrónico</label><input class="form-control" type="email" name="correo" value="{{ colaborador.correo }}"></div>
+    <div class="col-md-4"><label class="form-label">Número de teléfono</label><input class="form-control" name="telefono" value="{{ colaborador.telefono }}"></div>
+    <div class="col-md-4"><label class="form-label">¿Tiene hijos?</label><select class="form-select" name="hijos"><option value="NO" {{ 'selected' if not colaborador.hijos else '' }}>No</option><option value="SI" {{ 'selected' if colaborador.hijos else '' }}>Sí</option></select></div>
+    <div class="col-md-4"><label class="form-label">Cantidad de hijos</label><input class="form-control" type="number" name="hijos_cantidad" min="0" value="{{ colaborador.hijos_cantidad }}"></div>
+    <div class="col-md-4"><label class="form-label">Aporta IPS</label><select class="form-select" name="aporte_ips"><option {{ 'selected' if colaborador.aporte_ips == 'SI' else '' }}>SI</option><option {{ 'selected' if colaborador.aporte_ips == 'NO' else '' }}>NO</option><option {{ 'selected' if colaborador.aporte_ips == 'Jubilado' else '' }}>Jubilado</option></select></div>
+    <div class="col-md-4"><label class="form-label">Bonificación familiar</label><select class="form-select" name="bonificacion_familiar"><option value="NO" {{ 'selected' if not colaborador.bonificacion_familiar else '' }}>No</option><option value="SI" {{ 'selected' if colaborador.bonificacion_familiar else '' }}>Sí</option></select></div>
+    <div class="col-md-4"><label class="form-label">Turno</label><input class="form-control" name="turno_linea" value="{{ colaborador.turno_linea }}"></div>
+    <div class="col-md-4"><label class="form-label">Foto</label><input class="form-control" type="file" name="foto" accept="image/*"></div>
+    <div class="col-12"><button class="btn btn-primary" type="submit">Guardar cambios</button><a class="btn btn-outline-secondary ms-2" href="/rrhh/colaboradores/padron">Cancelar</a></div>
+  </form>
+</div>
+{% endblock %}

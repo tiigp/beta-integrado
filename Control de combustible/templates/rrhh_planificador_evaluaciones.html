@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-4" style="max-width:1240px">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4"><div><div class="text-uppercase small fw-semibold text-primary">Recursos Humanos</div><h1 class="mb-1">Planificador de evaluaciones</h1><p class="text-muted mb-0">Programe fechas de cumplimiento y responsables para cada colaborador.</p></div><a class="btn btn-outline-secondary" href="{{ url_for('rrhh') }}"><i class="bi bi-arrow-left me-1"></i>Volver a RRHH</a></div>
+  <div class="row g-4">
+    <div class="col-lg-5"><section class="card border-0 shadow-sm"><div class="card-body"><h2 class="h5 mb-3">Nueva planificación</h2><form method="post"><div class="mb-3"><label class="form-label">Colaborador</label><select class="form-select" name="colaborador_id" required><option value="">Seleccione</option>{% for colaborador in colaboradores %}<option value="{{ colaborador.id }}" data-formulario="{{ colaborador.formulario_evaluacion }}" {{ 'selected' if selected_colaborador_id|string == colaborador.id|string else '' }}>{{ colaborador.nombre }} · {{ colaborador.estado }} · {{ colaborador.formulario_evaluacion|upper }}</option>{% endfor %}</select><div class="form-text">El responsable se detecta automáticamente desde el área, sección y vínculo del padrón.</div></div><div class="mb-3"><label class="form-label">Formulario</label><select class="form-select" name="formulario" required><option value="prueba" {{ 'selected' if selected_formulario == 'prueba' else '' }}>RRHH-FOR-007 · Período de prueba</option><option value="periodica" {{ 'selected' if selected_formulario == 'periodica' else '' }}>RRHH-FOR-008 · Evaluación anual</option><option value="administrativa" {{ 'selected' if selected_formulario == 'administrativa' else '' }}>RRHH-FOR-010 · Personal administrativo</option></select><div class="form-text">El formulario se ajusta automáticamente al colaborador seleccionado.</div></div><div class="mb-3"><label class="form-label">Fecha prevista</label><input class="form-control" type="date" name="fecha_limite" min="{{ today.isoformat() }}" required></div><button class="btn btn-primary w-100" type="submit"><i class="bi bi-calendar2-plus me-1"></i>Planificar evaluación</button></form></div></section></div>
+    <div class="col-lg-7"><section class="card border-0 shadow-sm"><div class="card-body"><div class="d-flex justify-content-between align-items-center mb-3"><h2 class="h5 mb-0">Calendario de cumplimiento</h2><span class="badge text-bg-light">Aviso: 15 días antes</span></div><div class="table-responsive"><table class="table table-sm align-middle"><thead><tr><th>Fecha</th><th>Colaborador</th><th>Formulario</th><th>Responsable</th><th>Estado</th><th>Notificar</th></tr></thead><tbody>{% for asignacion in asignaciones %}<tr><td>{{ asignacion.fecha_limite.strftime('%d/%m/%Y') if asignacion.fecha_limite else '-' }}</td><td>{{ asignacion.colaborador.nombre }}<div class="small text-muted">{{ asignacion.colaborador.legajo }}</div></td><td>{{ {'prueba':'RRHH-FOR-007','periodica':'RRHH-FOR-008','administrativa':'RRHH-FOR-010'}.get(asignacion.formulario, asignacion.formulario) }}</td><td>{{ asignacion.supervisor.full_name }}<div class="small text-muted">{{ asignacion.supervisor.correo or 'Sin correo' }} · {{ asignacion.supervisor.telefono or 'Sin teléfono' }}</div></td><td><span class="badge text-bg-{{ 'success' if asignacion.estado == 'Realizada' else 'warning' }}">{{ asignacion.estado }}</span></td><td><a class="btn btn-sm btn-outline-primary" href="{{ url_for('correo_evaluacion_rrhh', asignacion_id=asignacion.id) }}" title="Abrir correo"><i class="bi bi-envelope"></i></a></td></tr>{% else %}<tr><td colspan="6" class="text-center text-muted py-4">No hay evaluaciones planificadas.</td></tr>{% endfor %}</tbody></table></div></div></section></div>
+  </div>
+</div>
+<script>
+  const supervisorSelect = document.createElement('select');
+  supervisorSelect.className = 'form-select mb-3';
+  supervisorSelect.name = 'supervisor_id';
+  supervisorSelect.innerHTML = '<option value="">Detectar automáticamente</option>';
+  {% for supervisor in supervisores %}
+  supervisorSelect.insertAdjacentHTML('beforeend', '<option value="{{ supervisor.id }}">{{ supervisor.full_name }}</option>');
+  {% endfor %}
+  const formDate = document.querySelector('[name="fecha_limite"]');
+  if (formDate) { const label = document.createElement('label'); label.className = 'form-label'; label.textContent = 'Supervisor evaluador'; formDate.parentElement.before(label, supervisorSelect); }
+  const notificationCollaboratorId = '{{ selected_colaborador_id or '' }}';
+  const notificationForm = '{{ selected_formulario or '' }}';
+  const notificationSupervisorId = '{{ selected_supervisor_id or '' }}';
+  const collaboratorSelect = document.querySelector('[name="colaborador_id"]');
+  const formSelect = document.querySelector('[name="formulario"]');
+  function syncEvaluationForm() {
+    const selectedOption = collaboratorSelect?.selectedOptions[0];
+    const expectedForm = selectedOption?.dataset.formulario;
+    if (expectedForm && formSelect) formSelect.value = expectedForm;
+  }
+  collaboratorSelect?.addEventListener('change', syncEvaluationForm);
+  if (notificationCollaboratorId && collaboratorSelect) collaboratorSelect.value = notificationCollaboratorId;
+  if (notificationForm && formSelect) formSelect.value = notificationForm;
+  if (!notificationForm) syncEvaluationForm();
+  if (notificationSupervisorId) supervisorSelect.value = notificationSupervisorId;
+</script>
+{% endblock %}

@@ -1,0 +1,394 @@
+{% extends 'layout.html' %}
+{% block content %}
+<style>
+  .supervisor-shell { max-width: 1200px; margin: 0 auto; }
+  .supervisor-hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.4rem 1.6rem;
+    border: 1px solid #d6e2ee;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #edf6ff 0%, #ffffff 52%, #f5f8ff 100%);
+    box-shadow: 0 10px 30px rgba(24, 54, 80, 0.06);
+  }
+  .supervisor-kicker {
+    margin-bottom: .35rem;
+    color: #186692;
+    font-size: .74rem;
+    font-weight: 800;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+  }
+  .supervisor-hero h2 { margin: 0; color: #18354e; }
+  .supervisor-hero p { margin: .35rem 0 0; color: #66788a; }
+  .supervisor-meta {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin: 1.25rem 0 1.5rem;
+  }
+  .supervisor-stat {
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+    padding: 1rem 1.1rem;
+    border: 1px solid #d7e2ed;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 8px 22px rgba(24, 54, 80, 0.04);
+  }
+  .supervisor-stat .label { color: #718295; font-size: .76rem; text-transform: uppercase; letter-spacing: .08em; }
+  .supervisor-stat strong { color: #18354e; font-size: 1.5rem; }
+  .supervisor-action-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .supervisor-scheduled-card {
+    margin-bottom: 1.5rem;
+    padding: 1.25rem 1.3rem;
+    border: 1px solid #dfeaf4;
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(255, 245, 202, 0.7), rgba(255,255,255,0.98));
+    box-shadow: 0 12px 32px rgba(191, 126, 19, 0.08);
+  }
+  .supervisor-scheduled-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .supervisor-scheduled-header h3 {
+    margin: 0;
+    color: #1e3b53;
+    font-size: 1.25rem;
+    font-weight: 750;
+  }
+  .supervisor-scheduled-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: .42rem .72rem;
+    border-radius: 999px;
+    background: rgba(240, 153, 32, 0.12);
+    border: 1px solid rgba(210, 138, 27, 0.22);
+    color: #9a5f00;
+    font-size: .8rem;
+    font-weight: 700;
+  }
+  .supervisor-scheduled-list {
+    display: grid;
+    gap: .85rem;
+  }
+  .supervisor-scheduled-item {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr) auto;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem;
+    border: 1px solid #e9d7a3;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.72);
+  }
+  .supervisor-scheduled-icon {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #f4c86a, #f0a227);
+    color: #fff;
+    font-size: 1.3rem;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.28);
+  }
+  .supervisor-scheduled-body {
+    min-width: 0;
+  }
+  .supervisor-scheduled-body strong {
+    display: block;
+    color: #1d3552;
+    font-size: 1rem;
+  }
+  .supervisor-scheduled-body .small {
+    margin-top: .2rem;
+    color: #66788a;
+  }
+  .supervisor-scheduled-body .small-primary {
+    margin-top: .4rem;
+    color: #1d5f8d;
+    font-size: .82rem;
+    font-weight: 600;
+  }
+  .supervisor-scheduled-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: .55rem;
+    text-align: right;
+  }
+  .supervisor-scheduled-date {
+    color: #718295;
+    font-size: .8rem;
+    white-space: nowrap;
+  }
+  .supervisor-action {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 160px;
+    padding: 1.15rem;
+    border-radius: 16px;
+    border: 1px solid #d8e4ef;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(24, 54, 80, 0.05);
+    text-decoration: none;
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .supervisor-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(24, 54, 80, 0.08);
+    text-decoration: none;
+  }
+  .supervisor-action-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+  }
+  .supervisor-action i { font-size: 2rem; }
+  .supervisor-action strong { display: block; margin-top: .6rem; font-size: 1.1rem; color: #19354f; }
+  .supervisor-action span { color: #627888; font-size: .92rem; }
+  .supervisor-action .arrow { color: #4b6b86; font-size: 1.25rem; }
+  .supervisor-action.primary { border-left: 4px solid #2b6cb0; }
+  .supervisor-action.success { border-left: 4px solid #1c8a61; }
+  .supervisor-action.warning { border-left: 4px solid #d58c1f; }
+  .supervisor-action-inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  .supervisor-action-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: .5rem;
+  }
+  .supervisor-action-summary {
+    margin-top: .75rem;
+    padding-top: .7rem;
+    border-top: 1px solid #edf0f5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    font-size: .82rem;
+    color: #24506d;
+  }
+  .supervisor-action-summary strong {
+    color: #163f5e;
+    font-size: .9rem;
+  }
+  .supervisor-action-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    padding: .25rem .55rem;
+    border-radius: 999px;
+    background: rgba(28, 138, 97, 0.12);
+    border: 1px solid rgba(28, 138, 97, 0.2);
+    color: #116a4e;
+    font-weight: 700;
+  }
+  .supervisor-action-list-bullet {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1c8a61, #3fd199);
+    flex-shrink: 0;
+  }
+  @media (max-width: 900px) { .supervisor-hero { display: block; } .supervisor-meta, .supervisor-action-grid { grid-template-columns: 1fr; } }
+</style>
+
+<div class="supervisor-shell">
+  <header class="supervisor-hero">
+    <div>
+      <div class="supervisor-kicker">Dashboard › Supervisor</div>
+      <h2>Panel del Supervisor</h2>
+      <p>Accedé rápidamente a tus solicitudes, evaluaciones y bandeja de tareas.</p>
+    </div>
+  </header>
+
+  <div class="supervisor-meta">
+    <div class="supervisor-stat">
+      <span class="label">Solicitudes</span>
+      <strong>{{ pedidos|length }}</strong>
+    </div>
+    <div class="supervisor-stat">
+      <span class="label">Bandeja</span>
+      <strong>{{ notifications|length }}</strong>
+    </div>
+    <div class="supervisor-stat">
+      <span class="label">Estado</span>
+      <strong>Operativo</strong>
+    </div>
+  </div>
+
+  <div class="supervisor-action-grid">
+    <button class="supervisor-action primary text-start w-100" type="button" data-bs-toggle="collapse" data-bs-target="#solicitudes" aria-expanded="false" aria-controls="solicitudes">
+      <div class="supervisor-action-head">
+        <i class="bi bi-cart-plus text-primary"></i>
+        <i class="bi bi-arrow-right-circle arrow text-primary"></i>
+      </div>
+      <div>
+        <strong>Solicitudes</strong>
+        <span>Registrar pedidos y consultar su estado.</span>
+      </div>
+    </button>
+
+    <a class="supervisor-action success" href="{{ url_for('supervisor_bandeja') }}">
+      <div class="supervisor-action-inner">
+        <div class="supervisor-action-head">
+          <i class="bi bi-clipboard2-check text-success"></i>
+          <i class="bi bi-arrow-right-circle arrow text-success"></i>
+        </div>
+        <div class="supervisor-action-body">
+          <div>
+            <strong>Evaluación de personal</strong>
+            <span>Revisar colaboradores asignados y registrar evaluaciones.</span>
+          </div>
+
+          {% if notifications %}
+          <div class="supervisor-action-summary">
+            <strong>Tareas RRHH</strong>
+            <span class="supervisor-action-pill">{{ notifications|length }}</span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </a>
+
+    <a class="supervisor-action warning" href="{{ url_for('supervisor_bandeja') }}">
+      <div class="supervisor-action-head">
+        <i class="bi bi-bell text-warning"></i>
+        <i class="bi bi-arrow-right-circle arrow text-warning"></i>
+      </div>
+      <div>
+        <strong>Bandeja de evaluaciones</strong>
+        <span>Ver notificaciones y tareas pendientes.</span>
+      </div>
+    </a>
+  </div>
+
+  <div class="collapse row g-4" id="solicitudes">
+    <div class="col-lg-5">
+      <div class="dashboard-card">
+        <h4><i class="bi bi-cart-plus text-primary"></i> Nueva solicitud</h4>
+        <p class="small-muted">Indique los productos o servicios que necesita y sus cantidades. La solicitud pasará primero por autorización y luego llegará a Compras.</p>
+        <form method="post" action="{{ url_for('supervisor_solicitudes') }}">
+          <div id="lineas-pedido">
+            <div class="row g-2 mb-2 linea-pedido">
+              <div class="col-6">
+                <label class="form-label">Producto o servicio</label>
+                <input class="form-control" name="producto" list="catalogo-productos" placeholder="Producto, reparación, transporte..." autocomplete="off" required>
+              </div>
+              <div class="col-2">
+                <label class="form-label">Cantidad</label>
+                <input class="form-control" name="cantidad" type="number" min="0.01" step="0.01" required>
+              </div>
+              <div class="col-4">
+                <label class="form-label">Unidad de medida</label>
+                <select class="form-select" name="unidad" required>
+                  <option value="">Seleccione</option>
+                  <option value="unidad">Unidad</option>
+                  <option value="servicio">Servicio</option>
+                  <option value="kg">Kilogramo (kg)</option>
+                  <option value="g">Gramo (g)</option>
+                  <option value="ton">Tonelada (ton)</option>
+                  <option value="litro">Litro (L)</option>
+                  <option value="ml">Mililitro (ml)</option>
+                  <option value="metro">Metro (m)</option>
+                  <option value="m2">Metro cuadrado (m2)</option>
+                  <option value="m3">Metro cubico (m3)</option>
+                  <option value="caja">Caja</option>
+                  <option value="paquete">Paquete</option>
+                  <option value="bolsa">Bolsa</option>
+                  <option value="rollo">Rollo</option>
+                  <option value="juego">Juego</option>
+                  <option value="hora">Hora</option>
+                  <option value="dia">Dia</option>
+                  <option value="mes">Mes</option>
+                  <option value="viaje">Viaje</option>
+                  <option value="lote">Lote</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <datalist id="catalogo-productos">
+            {% for insumo in insumos %}
+            <option value="{{ insumo.codigo }}">{{ insumo.nombre }}</option>
+            <option value="{{ insumo.nombre }}">{{ insumo.codigo }}</option>
+            {% endfor %}
+          </datalist>
+          <button class="btn btn-sm btn-outline-primary mb-3" type="button" id="agregar-linea"><i class="bi bi-plus-circle"></i> Agregar otro producto o servicio</button>
+          <div class="mb-3">
+            <label class="form-label" for="observacion">Detalle de lo requerido</label>
+            <textarea class="form-control" id="observacion" name="observacion" rows="3"></textarea>
+          </div>
+          <button class="btn btn-primary w-100" type="submit"><i class="bi bi-send"></i> Enviar para autorización</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="col-lg-7">
+      <div class="dashboard-card">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h4><i class="bi bi-list-check text-primary"></i> Mis solicitudes</h4>
+          <span class="badge bg-primary">{{ pedidos|length }}</span>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead>
+              <tr>
+                <th>Pedido</th>
+                <th>Fecha</th>
+                <th>Producto o servicio</th>
+                <th>Ruta</th>
+                <th>Decisión</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for pedido in pedidos %}
+              <tr>
+                <td><strong>{{ pedido.codigo }}</strong></td>
+                <td>{{ pedido.fecha.strftime('%d/%m/%Y') }}</td>
+                <td>{% for detalle in pedido.detalles %}{{ detalle.descripcion or (detalle.insumo.nombre if detalle.insumo else 'Sin descripción') }} · {{ detalle.cantidad }} {{ detalle.unidad }}{% endfor %}</td>
+                <td><span class="badge {{ 'text-bg-success' if pedido.estado_aprobacion == 'Aprobado' else 'text-bg-danger' if pedido.estado_aprobacion == 'Rechazado' else 'text-bg-warning' if pedido.estado_aprobacion == 'Pendiente autorización' else 'text-bg-info' }}">{{ 'Aprobado por Gerencia' if pedido.estado_aprobacion == 'Aprobado' else 'Rechazado' if pedido.estado_aprobacion == 'Rechazado' else 'Pendiente de autorización' if pedido.estado_aprobacion == 'Pendiente autorización' else 'Autorizado, pendiente de Compras' }}</span></td>
+                <td><span class="badge {{ 'text-bg-success' if pedido.estado_aprobacion == 'Aprobado' else 'text-bg-danger' if pedido.estado_aprobacion == 'Rechazado' else 'text-bg-warning' }}">{{ pedido.estado_aprobacion }}</span></td>
+                <td>{{ pedido.estado }}</td>
+              </tr>
+              {% else %}
+              <tr><td colspan="6" class="text-center text-muted">Todavía no registró solicitudes.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('agregar-linea')?.addEventListener('click', () => {
+    const lineas = document.getElementById('lineas-pedido');
+    const linea = lineas.querySelector('.linea-pedido').cloneNode(true);
+    linea.querySelectorAll('input').forEach((input) => { input.value = ''; });
+    lineas.appendChild(linea);
+  });
+</script>
+{% endblock %}

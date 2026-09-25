@@ -1,0 +1,23 @@
+{% extends 'layout.html' %}
+{% block content %}
+<style>
+  .authorization-hero { padding: 1.35rem 1.5rem; border: 1px solid #eadfc8; border-radius: 12px; background: linear-gradient(120deg, #fffdf7, #fff7e7); }
+  .authorization-card { border: 1px solid #e5e9ed; border-radius: 10px; background: #fff; }
+  .authorization-card + .authorization-card { margin-top: 1rem; }
+</style>
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+  <div class="authorization-hero flex-grow-1"><div class="small text-uppercase text-warning fw-semibold">Compras / Filtro de autorización</div><h2 class="mb-1">Autorización de solicitudes</h2><p class="small-muted mb-0">Revise los pedidos enviados por Supervisores y autorice o rechace el inicio del proceso de compra.</p></div>
+  <a class="btn btn-outline-secondary" href="{{ url_for('autorizaciones_compras') }}"><i class="bi bi-arrow-left me-1"></i>Volver al panel</a>
+</div>
+<div class="dashboard-card">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3"><div><h4 class="mb-1"><i class="bi bi-shield-check text-warning me-1"></i>Pedidos pendientes de autorización</h4><p class="small-muted mb-0">Solo después de autorizarse pasan a Compras para evaluar el monto y la gestión.</p></div><span class="badge text-bg-warning">{{ pendientes|length }} pendiente(s)</span></div>
+  {% for pedido in pendientes %}
+  <article class="authorization-card p-3">
+    <div class="d-flex flex-wrap justify-content-between gap-3"><div><strong>{{ pedido.codigo }}</strong><span class="text-muted ms-2">{{ pedido.fecha.strftime('%d/%m/%Y %H:%M') }}</span><div class="small text-muted">Solicitante: {{ pedido.solicitado_por }}</div></div><span class="badge text-bg-info">Pendiente autorización</span></div>
+    <div class="mt-3"><strong>Detalle:</strong> {% for detalle in pedido.detalles %}{{ detalle.descripcion or (detalle.insumo.nombre if detalle.insumo else 'Sin descripción') }}: {{ detalle.cantidad }} {{ detalle.unidad }}{% if not loop.last %}; {% endif %}{% endfor %}</div>
+    {% if pedido.observacion %}<p class="small text-muted mb-0 mt-2">Observación: {{ pedido.observacion }}</p>{% endif %}
+    <form method="post" class="row g-2 align-items-end mt-2"><input type="hidden" name="pedido_id" value="{{ pedido.id }}"><div class="col-md-8"><label class="form-label small">Comentario</label><input class="form-control" name="observacion" placeholder="Comentario de autorización o rechazo"></div><div class="col-md-2"><button class="btn btn-success w-100" name="decision" value="autorizar" type="submit"><i class="bi bi-check2 me-1"></i>Autorizar</button></div><div class="col-md-2"><button class="btn btn-outline-danger w-100" name="decision" value="rechazar" type="submit"><i class="bi bi-x-lg me-1"></i>Rechazar</button></div></form>
+  </article>
+  {% else %}<div class="text-center text-muted py-5"><i class="bi bi-check2-circle fs-2 d-block mb-2"></i>No hay pedidos pendientes de autorización.</div>{% endfor %}
+</div>
+{% endblock %}

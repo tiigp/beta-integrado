@@ -1,0 +1,43 @@
+{% extends "layout.html" %}
+{% block content %}
+<style>
+  .syso-home { max-width: 1180px; margin: 0 auto; color: #172033; }
+  .syso-hero { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; padding: 1.8rem 2rem; border: 1px solid #d8e4df; border-radius: 18px; background: linear-gradient(120deg, #fff 0%, #edf8f3 55%, #f3f6ec 100%); box-shadow: 0 14px 34px rgba(32, 78, 61, .1); }
+  .syso-kicker { margin-bottom: .55rem; color: #21745e; font-size: .72rem; font-weight: 750; letter-spacing: .16em; text-transform: uppercase; }
+  .syso-hero h1 { margin: 0; color: #174b3c; font-size: clamp(1.8rem, 3vw, 2.55rem); font-weight: 750; }
+  .syso-hero p { max-width: 680px; margin: .45rem 0 0; color: #5f716a; }
+  .syso-mark { display: grid; place-items: center; width: 76px; height: 76px; border-radius: 22px; background: #21745e; color: #fff; font-size: 2.15rem; box-shadow: 0 12px 24px rgba(33, 116, 94, .24); }
+  .syso-section { margin-top: 1.5rem; }
+  .syso-section h2 { margin: 0 0 .8rem; color: #263b53; font-size: 1.05rem; font-weight: 750; }
+  .syso-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+  .syso-card { min-height: 150px; padding: 1.1rem; border: 1px solid #dce8e3; border-radius: 12px; background: #fff; box-shadow: 0 8px 20px rgba(31, 65, 58, .06); }
+  .syso-card i { color: #21745e; font-size: 1.45rem; }
+  .syso-card h3 { margin: .75rem 0 .35rem; color: #174b3c; font-size: 1rem; }
+  .syso-card p { margin: 0; color: #64746d; font-size: .9rem; }
+  .syso-note { margin-top: 1.5rem; padding: 1rem 1.1rem; border-left: 4px solid #d49a36; background: #fff9ed; color: #6f5a2d; }
+  @media (max-width: 800px) { .syso-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 520px) { .syso-hero { align-items: flex-start; padding: 1.3rem; } .syso-mark { width: 58px; height: 58px; font-size: 1.6rem; } .syso-grid { grid-template-columns: 1fr; } }
+</style>
+<div class="syso-home">
+  <header class="syso-hero">
+    <div>
+      <div class="syso-kicker">IGP Metales · SYSO</div>
+      <h1>Seguridad y Salud Ocupacional</h1>
+      <p>Centro de control para prevenir riesgos, registrar incidentes y gestionar la documentación de seguridad laboral.</p>
+    </div>
+    <div class="syso-mark" aria-hidden="true"><i class="bi bi-shield-check"></i></div>
+  </header>
+  <section class="syso-section">
+    <h2>Ejes del módulo</h2>
+    <div class="syso-grid">
+      <article class="syso-card"><i class="bi bi-exclamation-triangle"></i><h3>Matriz de riesgos</h3><p>Identificación de peligros, evaluación de riesgos y medidas de control por puesto y sector.</p></article>
+      <article class="syso-card"><i class="bi bi-clipboard2-pulse"></i><h3>Incidentes y accidentes</h3><p>Registro, investigación, acciones correctivas y seguimiento de eventos laborales.</p></article>
+      <article class="syso-card"><i class="bi bi-person-video3"></i><h3>Capacitaciones</h3><p>Plan anual, asistencia, contenidos, evaluaciones y constancias del personal.</p></article>
+      <article class="syso-card"><i class="bi bi-search"></i><h3>Inspecciones</h3><p>Listas de verificación, hallazgos, responsables, vencimientos y evidencias.</p></article>
+      <article class="syso-card"><i class="bi bi-person-check"></i><h3>EPP y aptitudes</h3><p>Entrega de equipos, talles, vencimientos, aptos médicos y restricciones.</p></article>
+      <article class="syso-card"><i class="bi bi-folder2-open"></i><h3>Documentación SYSO</h3><p>Procedimientos, permisos de trabajo, planes de emergencia y registros trazables.</p></article>
+    </div>
+  </section>
+  <div class="syso-note"><strong>Base normativa:</strong> el diseño funcional se completará con los requisitos aplicables de Paraguay, incluyendo seguridad y salud ocupacional, documentación laboral, inspecciones y registros exigibles para la actividad.</div>
+</div>
+{% endblock %}

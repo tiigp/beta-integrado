@@ -1,0 +1,42 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="dashboard-card mt-3">
+  <h3 class="mb-3">Histórico de movimientos</h3>
+  <table class="table table-striped align-middle">
+    <thead>
+      <tr><th>Fecha</th><th>Tipo</th><th>Detalle</th><th>Litros</th><th>Acción</th></tr>
+    </thead>
+    <tbody>
+      {% for item in entries %}
+      <tr>
+        <td>{{ item.fecha.strftime('%d/%m/%Y') if item.fecha else 'Sin fecha' }}</td>
+        <td>
+          {% if item.tipo == 'Compra' %}
+            <span class="badge bg-success">Compra</span>
+          {% else %}
+            <span class="badge bg-primary">Despacho</span>
+          {% endif %}
+        </td>
+        <td>{{ item.descripcion }}</td>
+        <td>{{ '%.0f'|format(item.litros) }} L</td>
+        <td>
+          {% if item.tipo == 'Despacho' %}
+            <div class="d-flex gap-2">
+              <a href="{{ item.route }}" class="btn btn-sm btn-outline-primary">Ver</a>
+              <a href="{{ url_for('pdf_despacho', despacho_id=item.id) }}" class="btn btn-sm btn-outline-success" target="_blank">PDF</a>
+            </div>
+          {% else %}
+            <div class="d-flex gap-2">
+              <span class="text-muted small">Sin detalle</span>
+              <a href="{{ url_for('export_history_pdf', tipo='compra', item_id=item.id) }}" class="btn btn-sm btn-outline-success" target="_blank">PDF</a>
+            </div>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="text-center text-muted">Sin movimientos</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+{% block content %}
+<style>
+  .password-page { max-width: 620px; margin: 0 auto; }
+  .password-hero { padding: 1.5rem 1.7rem; border: 1px solid #dbe5ef; border-radius: 16px; background: linear-gradient(120deg, #fff, #eef6fb); }
+  .password-hero h1 { margin: 0; color: #163b5b; }
+  .password-hero p { margin: .45rem 0 0; color: #64748b; }
+  .password-card { margin-top: 1rem; padding: 1.4rem; border: 1px solid #dbe5ef; border-radius: 14px; background: #fff; box-shadow: 0 8px 22px rgba(31,41,55,.06); }
+</style>
+<div class="container py-4 password-page">
+  <header class="password-hero">
+    <div class="small text-uppercase text-primary fw-semibold">Mi cuenta</div>
+    <h1>Cambiar contraseña</h1>
+    <p>Actualice la contraseña de su usuario cuando lo necesite.</p>
+  </header>
+  <section class="password-card">
+    <form method="post" autocomplete="off">
+      <label class="form-label" for="contrasena_actual">Contraseña actual</label>
+      <input class="form-control mb-3" id="contrasena_actual" name="contrasena_actual" type="password" autocomplete="current-password" required>
+      <label class="form-label" for="nueva_contrasena">Nueva contraseña</label>
+      <input class="form-control mb-3" id="nueva_contrasena" name="nueva_contrasena" type="password" minlength="6" autocomplete="new-password" required>
+      <label class="form-label" for="confirmar_contrasena">Confirmar nueva contraseña</label>
+      <input class="form-control mb-4" id="confirmar_contrasena" name="confirmar_contrasena" type="password" minlength="6" autocomplete="new-password" required>
+      <div class="d-flex justify-content-end gap-2">
+        <a class="btn btn-outline-secondary" href="{{ url_for('admin_dashboard') if current_user.is_admin else url_for('quality_dashboard') if current_user.is_calidad or current_user.is_control_calidad else url_for('rrhh') if current_user.is_rrhh else url_for('supervisor_dashboard') if current_user.is_supervisor else url_for('inventario') if current_user.is_deposito else url_for('modulo_compras') if current_user.is_compras else url_for('gerencia_pedidos') if current_user.is_gerencia else url_for('despacho_dashboard') }}">Cancelar</a>
+        <button class="btn btn-primary" type="submit"><i class="bi bi-check2 me-1"></i>Guardar contraseña</button>
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}
